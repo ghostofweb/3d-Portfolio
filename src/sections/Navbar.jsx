@@ -1,27 +1,41 @@
-import React, { useState } from 'react'
-import { navLinks } from '../constants';
-
-const NavItems = () => {
-  return (
-    <ul className="nav-ul">
-      {navLinks.map(({ id, href, name }) => (
-        <li key={id} className="nav-li">
-          <a href={href} className="nav-li_a">
-            {name}
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-
+import React, { useState } from 'react';
+import { saveAs } from 'file-saver'; // Import the file-saver library
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Define navLinks directly in the component
+  const navLinks = [
+    {
+      id: 1,
+      name: 'Home',
+      href: '#home',
+    },
+    {
+      id: 2,
+      name: 'About',
+      href: '#about',
+    },
+    {
+      id: 3,
+      name: 'Work',
+      href: '#work',
+    },
+    {
+      id: 4,
+      name: 'Contact',
+      href: '#contact',
+    },
+  ];
+
   const toggleMenu = () => {
     setIsOpen((prev) => !prev);
+  };
+
+  // Handle download logic
+  const handleDownload = (e) => {
+    e.preventDefault(); // Prevent the default anchor behavior
+    saveAs('/resume.pdf', 'Sahiljeet_Resume.pdf'); // Reference the file in the public folder
   };
 
   return (
@@ -41,15 +55,49 @@ const Navbar = () => {
           </button>
           {/* Desktop Navigation */}
           <nav className="sm:flex hidden">
-            <NavItems />
+            <ul className="nav-ul">
+              {navLinks.map(({ id, href, name }) => (
+                <li key={id} className="nav-li">
+                  <a href={href} className="nav-li_a">
+                    {name}
+                  </a>
+                </li>
+              ))}
+              <li className="nav-li">
+                <a
+                  href="/resume.pdf"  // Point to the file in the public folder
+                  className="nav-li_a"
+                  onClick={handleDownload} // Add onClick handler for download
+                >
+                  Resume
+                </a>
+              </li>
+            </ul>
           </nav>
         </div>
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="nav-sidebar">
             <nav className='p-5'>
-            <NavItems />      
-</nav>
+              <ul className="nav-ul">
+                {navLinks.map(({ id, href, name }) => (
+                  <li key={id} className="nav-li">
+                    <a href={href} className="nav-li_a">
+                      {name}
+                    </a>
+                  </li>
+                ))}
+                <li className="nav-li">
+                  <a
+                    href="/resume.pdf"  // Point to the file in the public folder
+                    className="nav-li_a"
+                    onClick={handleDownload} // Add onClick handler for download
+                  >
+                    Resume
+                  </a>
+                </li>
+              </ul>
+            </nav>
           </div>
         )}
       </div>
@@ -57,5 +105,4 @@ const Navbar = () => {
   );
 };
 
-
-export default Navbar
+export default Navbar;

@@ -70,9 +70,9 @@ const Contact = () => {
     return (
         <section className='c-space my-20' id='contact'>
             <div className='relative min-h-screen flex items-center justify-center flex-col'>
-                <img src="/assets/terminal.png" alt="terminal background" className='absolute inset-0 min-h-screen' />
+                <img src="/assets/terminal.png" alt="terminal background" className='absolute inset-0 min-h-screen hidden xl:block' />
                 <div className='contact-container'>
-                    <h3 className='head-text'>Let's talk</h3>
+                    <h3 className='head-text  mt-11'>Let's talk</h3>
                     <p className='text-lg text-white-600'>
                         Looking for a skilled Full-Stack Web Developer? I'm available for freelance projects or a full-time role to bring your ideas to life.
                     </p>
