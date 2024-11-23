@@ -125,7 +125,7 @@ const [hasCopied, setHasCopied] = useState(false)
             <p className='grid-subtext text-center'>Contact Me</p>
             <div className='copy-container' onClick={handleCopy}>
             <img src={hasCopied ? 'assets/tick.svg':"assets/copy.svg"} alt="copy" />
-            <p className='lg:text-2xl md:text-xl font-medium text-grey-gradient text-white'>sahiljeetsinghkalsi@gail.com</p>
+            <p className='lg:text-2xl md:text-xl font-medium text-grey-gradient text-white'>sahiljeetsinghkalsi@gmail.com</p>
             </div>
           </div>
         </div>
