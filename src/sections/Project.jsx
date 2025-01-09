@@ -41,7 +41,7 @@ const Project = () => {
                     <div className='flex items-center gap-3'>
                         {currentProject.tags.map((tag,index)=>(
                             <div key={index}>
-                                <img src={tag.path} alt="tag.name" />
+                                <img src={tag.path} alt="tag.name" className='w-12' />
                             </div>
                         ))}
                     </div>

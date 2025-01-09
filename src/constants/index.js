@@ -94,7 +94,27 @@ export const navLinks = [
             { id: 2, name: 'TailwindCSS', path: 'assets/tailwindcss.png' },
             { id: 3, name: 'Firebase', path: '/assets/firebase.png' }
         ],
-    },
+    },{
+      "title": "Gaberina - A Luxurious E-Commerce Website",
+      "desc": "Gaberina is a feature-rich e-commerce platform designed to provide a seamless shopping experience. With an elegant design and robust functionality, users can browse, buy, and track products effortlessly.",
+      "subdesc": "Built using React.js, Node.js, MongoDB, and TailwindCSS, Gaberina features secure login, payment gateways, and a dynamic admin panel. It's a complete solution for managing and experiencing online shopping.",
+      "href": "https://gaberina.vercel.app/",
+      "texture": "/textures/project/project3.mp4",
+      "logo": "/assets/project-logo3.png",
+      "logoStyle": {
+        "backgroundColor": "#1C1C1C",
+        "border": "0.2px solid #D4AF37",
+        "boxShadow": "0px 0px 60px 0px #D4AF37"
+      },
+      "spotlight": "/assets/spotlight3.png",
+      "tags": [
+          { "id": 1, "name": "React.js", "path": "/assets/react.svg" },
+          { "id": 2, "name": "Node.js", "path": "/assets/nodejs.svg" },
+          { "id": 3, "name": "MongoDB", "path": "/assets/mongodb.svg" },
+          { "id": 4, "name": "TailwindCSS", "path": "/assets/tailwindcss.png" }
+      ]
+  }
+  
 ];
 
   
