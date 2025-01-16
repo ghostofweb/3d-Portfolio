@@ -113,7 +113,26 @@ export const navLinks = [
           { "id": 3, "name": "MongoDB", "path": "/assets/mongodb.svg" },
           { "id": 4, "name": "TailwindCSS", "path": "/assets/tailwindcss.png" }
       ]
+  },{
+    "title": "Divine Pellets - Biomass Energy Website",
+    "desc": "Divine Pellets is a modern website showcasing sustainable biomass energy solutions. With a clean and professional design, users can explore products, learn about biomass benefits, and get in touch effortlessly.",
+    "subdesc": "Built using React.js, Node.js, TailwindCSS, and Framer Motion, the platform features interactive sections, smooth animations, and a responsive design, offering an engaging and informative user experience.",
+    "href": "https://www.divinepellets.com/",
+    "texture": "/textures/project/project4.mp4",
+    "logo": "/assets/project-logo4.png",
+    "logoStyle": {
+      "backgroundColor": "#FFFFFF",
+      "border": "0.2px solid #1B392F",
+      "boxShadow": "0px 0px 40px 0px #1B392F"
+    },
+    "spotlight": "/assets/spotlight4.png",
+    "tags": [
+      { "id": 1, "name": "React.js", "path": "/assets/react.svg" },
+      { "id": 2, "name": "Node.js", "path": "/assets/nodejs.svg" },
+      { "id": 3, "name": "TailwindCSS", "path": "/assets/tailwindcss.png" },
+    ]
   }
+  
   
 ];
 
