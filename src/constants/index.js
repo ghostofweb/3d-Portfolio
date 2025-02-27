@@ -52,12 +52,32 @@ export const navLinks = [
       position: 'CEO of BrightStar Enterprises',
       img: 'assets/review4.png',
       review:
-        'Adrian was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend backend dev are top-notch.',
+        'Adrian was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend backend dev are top-notch.',      
     },
   ];
   
   export const myProjects = [
     {
+      "title": "ImageAI - AI-Powered Image Editing Platform",
+      "desc": "ImageAI is a next-gen platform offering advanced image editing capabilities using cutting-edge AI technology, providing tools for generation, restoration, background removal, and more.",
+      "subdesc": "Built with Next.js 14, TypeScript, Tailwind CSS, and Cloudinary AI, the platform offers a seamless, responsive user experience with powerful AI-backed image transformations.",
+      "href": "https://imageai-bay.vercel.app/",
+      "texture": "/textures/project/project5.mp4",
+      "logo": "/assets/project-logo5.png",
+      "logoStyle": {
+          "backgroundColor": "#FFFFFF",
+          "border": "0.2px solid #1E3A8A",
+          "boxShadow": "0px 0px 40px 0px #1E3A8A"
+      },
+      "spotlight": "/assets/spotlight5.png",
+      "tags": [
+          { "id": 1, "name": "Next.js 14", "path": "/assets/nextjs.png" },
+          { "id": 2, "name": "TypeScript", "path": "/assets/typescript.png" },
+          { "id": 3, "name": "TailwindCSS", "path": "/assets/tailwindcss.png" },
+          { "id": 4, "name": "Cloudinary AI", "path": "/assets/cloudinary.png" },
+          { "id": 5, "name": "Clerk", "path": "/assets/clerk.png" }
+      ]
+  },{
         title: 'CipherSprint - Typing Speed App',
         desc: 'CipherSprint is an interactive typing speed test application designed to improve typing skills and accuracy. It offers features such as customizable themes, performance tracking, and detailed analytics to monitor progress over time.',
         subdesc: 'This app leverages modern technologies like React.js, Firebase, and Material-UI to create a seamless user experience. Built with a focus on accessibility and engagement, CipherSprint is perfect for typists of all levels.',
@@ -132,6 +152,7 @@ export const navLinks = [
       { "id": 3, "name": "TailwindCSS", "path": "/assets/tailwindcss.png" },
     ]
   }
+
   
   
 ];
