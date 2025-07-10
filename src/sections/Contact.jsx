@@ -21,7 +21,7 @@ const Contact = () => {
         setLoading(true);
         try {
             await emailjs.send(
-                'service_68ee6na', // Service ID
+                'service_iljspf8', // Service ID
                 'template_dry1gsh', // Template ID
                 {
                     from_name: form.name,
