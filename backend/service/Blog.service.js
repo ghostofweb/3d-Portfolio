@@ -170,12 +170,48 @@ export const getBlogForEdit = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
     try {
-        const blogs = await Blog.find({})
-            .populate("author", "name username position")
-            .sort({ createdAt: -1 });
+        const { page = 1, limit = 10, search = "" } = req.query;
+        
+        // Create a search query
+        const query = search 
+            ? { title: { $regex: search, $options: "i" } } // Case-insensitive search
+            : {};
 
-        return ApiResponse(res, 200, true, "All blogs fetched successfully", blogs);
+        const blogs = await Blog.find(query)
+            .populate("author", "name username position")
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const count = await Blog.countDocuments(query);
+
+        return ApiResponse(res, 200, true, "Blogs fetched successfully", {
+            blogs,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page
+        });
     } catch (error) {
         return ApiResponse(res, 500, false, error.message);
     }
 }
+
+export const uploadBlogImage = async (req, res) => {
+    try {
+        if (!req.file) {
+            return ApiResponse(res, 400, false, "No image file provided");
+        }
+
+        const uploadedImage = await uploadOnCloudinary(req.file.path);
+
+        if (!uploadedImage) {
+            return ApiResponse(res, 500, false, "Failed to upload image");
+        }
+        return res.status(200).json({
+            success: true,
+            url: uploadedImage.url
+        });
+
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+};

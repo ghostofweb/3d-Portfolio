@@ -21,10 +21,13 @@ const UserSchema = new mongoose.Schema({
         required: [true, "Position is required"],
         trim: true,
     },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     password: {
         type: String,
         required: [true, "Password is required"],
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
 }, {
     timestamps: true 
 });
@@ -51,5 +54,16 @@ UserSchema.methods.generateAccessToken = function () {
         }
     );
 };
+UserSchema.methods.getResetPasswordToken = function () {
+    const resetToken = crypto.randomBytes(20).toString("hex");
 
+    this.resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(resetToken)
+        .digest("hex");
+
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
+};
 export const User = mongoose.models.User || mongoose.model("User", UserSchema);
