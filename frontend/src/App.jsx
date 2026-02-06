@@ -15,7 +15,7 @@ const App = () => {
      <Route path='/' element={<Home/>}/>
      <Route path="/blogs" element={<AllBlogs/>}/>
      <Route path="/blog/:slug" element={<BlogDetails/>}/>
-     <Route path="/cyberpunk2077/arasaka/jhonny-silverhand/login" element={<AdminLogin/>}/>
+     <Route path="/admin/login" element={<AdminLogin/>}/>
      <Route path="/admin/dashboard" element={<Dashboard />} />
      <Route path='/admin/create-blog' element={<CreateBlog/>}/>
      <Route path="/admin/edit-blog/:slug" element={<UpdateBlog />} />
