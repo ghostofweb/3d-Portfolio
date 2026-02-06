@@ -108,7 +108,7 @@ const UpdateBlog = () => {
         } catch (error) {
             console.error("Error fetching blog:", error);
             if (error.response?.status === 401 || error.response?.status === 403) {
-                navigate('/this-or-that/admin/me/admin/login');
+                navigate('/admin/login');
             } else {
                 toast.error("Could not load blog details.");
                 navigate('/admin/dashboard');

@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
     LayoutDashboard, PenTool, Users, LogOut, Plus, 
-    Loader2, Settings, UserCog, Save, X 
+    Loader2, Settings, UserCog, Save, X, KeyRound, 
+    ShieldCheck, Fingerprint, Sparkles, CheckCircle2 
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -11,7 +12,7 @@ import Overview from '../component/dashboard/Overview.jsx';
 import UserManager from '../component/dashboard/UserManager.jsx';
 import BlogManager from '../component/dashboard/BlogManager.jsx';
 
-// ... SidebarItem Component (No Change) ...
+// --- SHARED SIDEBAR ITEM ---
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
   <button 
     onClick={onClick}
@@ -31,41 +32,36 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [user, setUser] = useState(null);
-  
-  // Data State
+  const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
   const [users, setUsers] = useState([]); 
-  const [loading, setLoading] = useState(true);
 
-  // Pagination & Search State
+  // Pagination & Search
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  // --- FETCH DATA (Memoized) ---
+  // --- DATA FETCHING ---
   const fetchAllData = useCallback(async (pageNum = 1, searchQuery = "") => {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
       try {
           setLoading(true);
-
-          // 1. Fetch Blogs (with Query Params)
+          
           const blogRes = await axios.get(
             `${import.meta.env.VITE_BACKEND_URL}/api/blog/all-blogs?page=${pageNum}&limit=9&search=${searchQuery}`, 
             { headers: { 'Authorization': `Bearer ${token}` } }
           );
           
           if (blogRes.data.success) {
-              // The backend now returns { blogs, totalPages, currentPage }
               setBlogs(blogRes.data.data.blogs);
               setTotalPages(blogRes.data.data.totalPages);
               setPage(blogRes.data.data.currentPage);
           }
 
-          // 2. Fetch Users (Only need to do this once or on tab switch, but keeping simple here)
           if (activeTab === 'overview' || activeTab === 'users') {
              const userRes = await axios.get(
                 `${import.meta.env.VITE_BACKEND_URL}/api/user/all-users`,
@@ -73,50 +69,35 @@ const Dashboard = () => {
              );
              if (userRes.data.success) setUsers(userRes.data.data);
           }
-
       } catch (error) {
-          console.error("Dashboard Sync Error:", error);
-          if (error.response?.status === 401 || error.response?.status === 403) {
+          if (error.response?.status === 401) {
               localStorage.clear();
               navigate('/this-or-that/admin/me/admin/login');
+          } else {
+              toast.error(error.response?.data?.message || "Access Denied");
           }
       } finally {
           setLoading(false);
       }
   }, [activeTab, navigate]);
 
-  // Initial Load
   useEffect(() => {
-    const initDashboard = async () => {
+    const init = async () => {
         const userData = localStorage.getItem('user');
-        if (!userData) {
-            navigate('/this-or-that/admin/me/admin/login');
-            return;
-        }
+        if (!userData) return navigate('/this-or-that/admin/me/admin/login');
         setUser(JSON.parse(userData));
-        await fetchAllData(1, ""); // Load page 1, no search
+        await fetchAllData(1, "");
     };
-    initDashboard();
+    init();
   }, [navigate, fetchAllData]);
 
-  // --- DEBOUNCED SEARCH ---
-  // When 'search' state changes, wait 500ms before calling API
+  // Debounced Search
   useEffect(() => {
       const delayDebounceFn = setTimeout(() => {
-          if (activeTab === 'blogs') {
-             fetchAllData(1, search); // Reset to page 1 when searching
-          }
+          if (activeTab === 'blogs') fetchAllData(1, search);
       }, 500); 
-
       return () => clearTimeout(delayDebounceFn);
   }, [search, activeTab, fetchAllData]);
-
-  // --- HANDLERS ---
-  const handlePageChange = (newPage) => {
-      if (newPage >= 1 && newPage <= totalPages) {
-          fetchAllData(newPage, search);
-      }
-  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -124,7 +105,6 @@ const Dashboard = () => {
     navigate('/');
   };
 
-  // ... (handleProfileUpdateSuccess and EditProfileModal stay the same) ...
   const handleProfileUpdateSuccess = (updatedUser, newToken) => {
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -136,10 +116,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[#000000] text-white flex font-sans selection:bg-white/20">
       
-      {/* 1. SIDEBAR (No changes) */}
+      {/* SIDEBAR */}
       <aside className="w-64 border-r border-white/[0.08] flex flex-col justify-between fixed h-full bg-[#000000] z-50">
-         {/* ... (Same sidebar content) ... */}
-         <div className="p-4">
+        <div className="p-4">
           <div className="flex items-center gap-3 px-2 py-4 mb-6">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)]">
               <span className="text-black font-bold text-lg">G</span>
@@ -156,8 +135,8 @@ const Dashboard = () => {
 
         <div className="p-4 border-t border-white/[0.08] bg-[#050505]">
           <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors group relative">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-600 flex items-center justify-center text-xs font-bold ring-1 ring-white/20">
-              {user?.username?.[0]?.toUpperCase()}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-zinc-700 to-zinc-600 flex items-center justify-center text-xs font-bold ring-1 ring-white/20 uppercase">
+              {user?.username?.[0]}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate text-zinc-300 group-hover:text-white transition-colors">{user?.name}</p>
@@ -171,137 +150,201 @@ const Dashboard = () => {
         </div>
       </aside>
 
-      {/* 2. MAIN CONTENT AREA */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 ml-64 p-8 max-w-7xl mx-auto w-full">
         <header className="flex justify-between items-end mb-10 border-b border-white/[0.06] pb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
-                {activeTab === 'overview' && 'Dashboard'}
-                {activeTab === 'blogs' && 'Content Management'}
-                {activeTab === 'users' && 'Team & Roles'}
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white capitalize">{activeTab.replace('blogs', 'Content')}</h1>
             <p className="text-sm text-zinc-500 mt-2">
-                {activeTab === 'overview' && 'Welcome back, Master. Here is what’s happening.'}
-                {activeTab === 'blogs' && 'Manage, edit, and publish your latest stories.'}
+                {activeTab === 'overview' && 'Welcome back, Master. Here is the current state of play.'}
+                {activeTab === 'blogs' && 'Forge, edit, and publish your latest stories.'}
                 {activeTab === 'users' && 'Manage access levels and team composition.'}
             </p>
           </div>
-          <div className="flex gap-3">
-             {activeTab === 'blogs' && (
-                 <button onClick={() => navigate('/admin/create-blog')} className="bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-200 transition-all flex items-center gap-2 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
-                    <Plus className="w-4 h-4" /> Create Post
-                 </button>
-             )}
-          </div>
+          {activeTab === 'blogs' && (
+             <button onClick={() => navigate('/admin/create-blog')} className="bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-200 transition-all flex items-center gap-2 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
+                <Plus className="w-4 h-4" /> Create Post
+             </button>
+          )}
         </header>
 
         {loading && blogs.length === 0 ? (
             <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-zinc-600" /></div>
         ) : (
             <>
-                {activeTab === 'overview' && <Overview blogs={blogs} users={users} />}
-                
-                {/* Pass Pagination & Search Props */}
+                {activeTab === 'overview' && <Overview blogs={blogs} users={users} currentUser={user} />}
                 {activeTab === 'blogs' && (
                     <BlogManager 
-                        blogs={blogs} 
-                        refreshBlogs={() => fetchAllData(page, search)} 
-                        currentUser={user}
-                        page={page}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        search={search}
-                        setSearch={setSearch} // Pass setter to allow input logic in sub-component if needed
+                        blogs={blogs} refreshBlogs={() => fetchAllData(page, search)} 
+                        currentUser={user} page={page} totalPages={totalPages}
+                        onPageChange={(p) => fetchAllData(p, search)}
+                        search={search} setSearch={setSearch}
                     />
                 )}
-                
                 {activeTab === 'users' && <UserManager currentUser={user} />}
             </>
         )}
       </main>
 
-      {/* 3. PROFILE EDIT MODAL */}
       {isProfileModalOpen && (
-          <EditProfileModal user={user} onClose={() => setIsProfileModalOpen(false)} onSuccess={handleProfileUpdateSuccess} />
+          <SecureEditModal user={user} onClose={() => setIsProfileModalOpen(false)} onSuccess={handleProfileUpdateSuccess} />
       )}
     </div>
   );
 };
 
-// ... EditProfileModal (No Changes) ...
-const EditProfileModal = ({ user, onClose, onSuccess }) => {
+// ==========================================
+// SECURE PROFILE UPDATE MODAL
+// ==========================================
+const SecureEditModal = ({ user, onClose, onSuccess }) => {
     const [formData, setFormData] = useState({
         name: user?.name || '',
         username: user?.username || '',
-        position: user?.position || ''
+        position: user?.position || '',
+        newPassword: '', // ✅ Password field is now here
+        otp: ''
     });
+    
+    const [otpSent, setOtpSent] = useState(false);
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    // 1. Request OTP (Uses Token to Identify User)
+    const handleRequestOtp = async () => {
+        setIsSendingOtp(true);
+        try {
+            const token = localStorage.getItem('accessToken');
+            const res = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/api/user/send-current-user-otp`, 
+                {}, 
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (res.data.success) {
+                setOtpSent(true);
+                toast.success("Verification code sent to your registered Gmail.");
+            }
+        } catch (error) {
+            toast.error("Code transmission failed.");
+        } finally { setIsSendingOtp(false); }
+    };
+
+    // 2. Submit Update (Includes new password if set)
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!otpSent) return toast.warning("Identity verification required.");
+        
         setLoading(true);
         try {
             const token = localStorage.getItem('accessToken');
-            const response = await axios.put(
+            const res = await axios.put(
                 `${import.meta.env.VITE_BACKEND_URL}/api/user/update-profile`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-
-            if (response.data.success) {
-                onSuccess(response.data.data.user, response.data.data.token);
-            }
+            if (res.data.success) onSuccess(res.data.data.user, res.data.data.token);
         } catch (error) {
-            console.error(error);
-            toast.error(error.response?.data?.message || "Failed to update profile.");
-        } finally {
-            setLoading(false);
-        }
+            toast.error(error.response?.data?.message || "Metamorphosis failed.");
+        } finally { setLoading(false); }
     };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity" onClick={onClose} />
-            <div className="relative w-full max-w-md bg-[#090909] border border-white/10 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/5 animate-in fade-in zoom-in-95">
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative w-full max-w-md bg-[#090909] border border-white/10 rounded-2xl shadow-2xl p-8 animate-in fade-in zoom-in-95 ring-1 ring-white/5">
                 <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
-                <div className="p-8">
-                    <div className="mb-6 flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20">
-                            <UserCog className="w-5 h-5 text-indigo-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold text-white">Identity Metamorphosis</h3>
-                            <p className="text-zinc-500 text-xs mt-0.5 uppercase tracking-widest">Update Your Credentials</p>
-                        </div>
+                
+                <div className="mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center border border-indigo-500/20">
+                        <UserCog className="w-5 h-5 text-indigo-400" />
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <h3 className="text-xl font-bold text-white">Identity Metamorphosis</h3>
+                        <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Update Secure Credentials</p>
+                    </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* --- Basic Info --- */}
+                    <div className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs text-zinc-400 font-medium ml-1">Full Name</label>
-                            <input name="name" value={formData.name} onChange={handleChange} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500/50 outline-none" />
+                            <input name="name" value={formData.name} onChange={handleChange} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none" />
                         </div>
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-xs text-zinc-400 font-medium ml-1">Username</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">@</span>
-                                    <input name="username" value={formData.username} onChange={handleChange} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg pl-8 pr-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500/50 outline-none" />
-                                </div>
+                                <input name="username" value={formData.username} onChange={handleChange} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none" />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs text-zinc-400 font-medium ml-1">Role / Title</label>
-                                <input name="position" value={formData.position} onChange={handleChange} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500/50 outline-none" />
+                                <input name="position" value={formData.position} onChange={handleChange} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none" />
                             </div>
                         </div>
-                        <div className="pt-2">
-                            <button type="submit" disabled={loading} className="w-full bg-white text-black font-bold py-3 rounded-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 group disabled:opacity-70">
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4 text-zinc-600 group-hover:text-black transition-colors" />}
-                                {loading ? "Updating..." : "Save Changes"}
-                            </button>
+                    </div>
+
+                    {/* --- CHANGE PASSWORD SECTION (Visible) --- */}
+                    <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl space-y-2">
+                        <div className="flex items-center gap-2 mb-2">
+                            <KeyRound className="w-4 h-4 text-indigo-400" />
+                            <span className="text-xs font-bold text-indigo-100 uppercase tracking-wider">Change Password</span>
                         </div>
-                    </form>
-                </div>
+                        <div className="space-y-1">
+                            <input 
+                                name="newPassword" 
+                                type="password" 
+                                placeholder="Enter new password (leave empty to keep current)" 
+                                onChange={handleChange} 
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none placeholder:text-zinc-600 transition-colors focus:border-indigo-500/50" 
+                            />
+                        </div>
+                    </div>
+
+                    {/* --- OTP VERIFICATION --- */}
+                    <div className="pt-2 border-t border-white/5 space-y-3">
+                        <div className="flex justify-between items-end">
+                            <label className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Target: {user?.email || "Linked Account"}</label>
+                            {otpSent && <span className="text-[10px] text-emerald-500 flex items-center gap-1 animate-in fade-in"><CheckCircle2 className="w-3 h-3"/> Code Sent</span>}
+                        </div>
+                        
+                        <div className="flex gap-2">
+                            <input 
+                                name="otp" 
+                                placeholder="Enter 6-digit Code" 
+                                maxLength={6} 
+                                disabled={!otpSent} 
+                                onChange={handleChange} 
+                                className="flex-1 bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-emerald-500 outline-none disabled:opacity-50 font-mono tracking-widest text-center" 
+                            />
+                            
+                            {!otpSent ? (
+                                <button 
+                                    type="button" 
+                                    onClick={handleRequestOtp} 
+                                    disabled={isSendingOtp} 
+                                    className="px-6 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap"
+                                >
+                                    {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Get Code"}
+                                </button>
+                            ) : (
+                                <div className="flex items-center justify-center px-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg animate-in zoom-in">
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        disabled={loading || !otpSent || !formData.otp} 
+                        className="w-full mt-2 bg-white text-black font-bold py-3.5 rounded-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]"
+                    >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4" />}
+                        {loading ? "Verifying & Updating..." : "Confirm Changes"}
+                    </button>
+                </form>
             </div>
         </div>
     );

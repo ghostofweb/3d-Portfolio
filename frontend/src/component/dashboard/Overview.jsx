@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Users } from 'lucide-react';
+import { toast } from 'react-toastify'; // Import Toast
 
 const StatCard = ({ title, value, icon: Icon, colorClass }) => (
   <div className="bg-[#0A0A0A] border border-white/5 rounded-xl p-6 relative overflow-hidden group hover:border-white/10 transition-colors">
@@ -17,8 +18,24 @@ const StatCard = ({ title, value, icon: Icon, colorClass }) => (
   </div>
 );
 
-const Overview = ({ blogs, users }) => {
+// ✅ Accept currentUser prop here
+const Overview = ({ blogs, users, currentUser }) => {
   const navigate = useNavigate();
+
+  // ✅ New Helper Function to handle clicks safely
+  const handleBlogClick = (blog) => {
+    // 1. Check if the blog has an author and if IDs match
+    // Note: ensure your backend populates author with _id
+    const isAuthor = blog.author?._id === currentUser?._id;
+
+    if (isAuthor) {
+        // If owner, go to edit page
+        navigate(`/admin/edit-blog/${blog.slug}`);
+    } else {
+        // If not owner, stay here and show error
+        toast.error(`Access Denied. This post belongs to ${blog.author?.username || "another user"}.`);
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -44,51 +61,65 @@ const Overview = ({ blogs, users }) => {
             <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-4">Latest Publications</h2>
             
             <div className="border border-white/5 rounded-xl overflow-hidden bg-[#0A0A0A]">
-                {blogs.slice(0, 5).map((blog, i) => (
-                    <div 
-                        key={blog._id || i} 
-                        onClick={() => navigate(`/admin/edit-blog/${blog.slug}`)} 
-                        className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/[0.04] transition-all group cursor-pointer"
-                    >
-                        {/* Left Side: Image + Title */}
-                        <div className="flex items-center gap-4">
-                            {/* Thumbnail */}
-                            <div className="w-10 h-10 rounded bg-zinc-900 border border-white/5 overflow-hidden flex-shrink-0">
-                                {blog.coverImage ? (
-                                    <img src={blog.coverImage} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                {blogs.slice(0, 5).map((blog, i) => {
+                    // Check ownership for styling (optional)
+                    const isAuthor = blog.author?._id === currentUser?._id;
+
+                    return (
+                        <div 
+                            key={blog._id || i} 
+                            // ✅ Use the new handler instead of direct navigate
+                            onClick={() => handleBlogClick(blog)} 
+                            className={`flex items-center justify-between p-4 border-b border-white/5 last:border-0 transition-all group cursor-pointer
+                                ${isAuthor ? 'hover:bg-white/[0.04]' : 'hover:bg-red-500/[0.05] opacity-80 hover:opacity-100'}
+                            `}
+                        >
+                            {/* Left Side: Image + Title */}
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded bg-zinc-900 border border-white/5 overflow-hidden flex-shrink-0">
+                                    {blog.coverImage ? (
+                                        <img src={blog.coverImage} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-600 text-[10px]">IMG</div>
+                                    )}
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                    <h4 className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors truncate max-w-[200px] md:max-w-md">
+                                        {blog.title}
+                                    </h4>
+                                    <p className="text-xs text-zinc-500">
+                                        by <span className={isAuthor ? "text-emerald-500" : "text-zinc-400"}>
+                                            {isAuthor ? "You" : `@${blog.author?.username}`}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Right Side: Status + Lock/Arrow Icon */}
+                            <div className="flex items-center gap-4">
+                                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                                    blog.isPublished 
+                                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                                    : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                                }`}>
+                                    {blog.isPublished ? 'PUBLISHED' : 'DRAFT'}
+                                </span>
+                                
+                                {/* Visual Cue: Show Padlock if not author, Arrow if author */}
+                                {isAuthor ? (
+                                    <svg className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 transition-colors transform group-hover:translate-x-1 duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-600 text-[10px]">IMG</div>
+                                    <svg className="w-4 h-4 text-zinc-800 group-hover:text-red-500/50 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
                                 )}
                             </div>
-                            
-                            {/* Text Info */}
-                            <div className="flex flex-col">
-                                <h4 className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors truncate max-w-[200px] md:max-w-md">
-                                    {blog.title}
-                                </h4>
-                                <p className="text-xs text-zinc-500">
-                                    {new Date(blog.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                </p>
-                            </div>
                         </div>
-
-                        {/* Right Side: Status + Arrow */}
-                        <div className="flex items-center gap-4">
-                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                                blog.isPublished 
-                                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
-                                : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                            }`}>
-                                {blog.isPublished ? 'PUBLISHED' : 'DRAFT'}
-                            </span>
-                            
-                            {/* Visual Cue Arrow */}
-                            <svg className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 transition-colors transform group-hover:translate-x-1 duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
                 
                 {blogs.length === 0 && (
                     <div className="p-8 text-center text-zinc-600 text-sm">No blogs published yet.</div>

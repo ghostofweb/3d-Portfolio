@@ -4,11 +4,10 @@ import axios from 'axios';
 import { 
   Edit3, Trash2, AlertTriangle, X, Loader2, Calendar, User, 
   MoreVertical, Filter, Check, ChevronDown, 
-  Search, ChevronLeft, ChevronRight // Added Icons
+  Search, ChevronLeft, ChevronRight, Lock // ✅ Added Lock Icon
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// Destructured new props
 const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPageChange, search, setSearch }) => {
   const navigate = useNavigate();
   
@@ -16,13 +15,10 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef(null);
 
-  // ... (Delete Modal State logic remains same) ...
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Local Filter Logic (Client side filtering on TOP of server search)
-  // This allows toggling "My Posts" even within search results
   const displayedBlogs = blogs.filter(blog => {
       if (filter === 'mine') {
           return blog.author?._id === currentUser?._id;
@@ -30,7 +26,6 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
       return true;
   });
 
-  // ... (Click Outside & Delete Handlers remain same) ...
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
@@ -41,9 +36,30 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const openDeleteModal = (blog) => { setBlogToDelete(blog); setIsDeleteModalOpen(true); };
+  // ✅ CHECK OWNERSHIP BEFORE DELETING
+  const openDeleteModal = (blog) => { 
+      const isAuthor = blog.author?._id === currentUser?._id;
+      
+      if (!isAuthor) {
+          return toast.error("Access Denied: You can only delete your own posts.");
+      }
+
+      setBlogToDelete(blog); 
+      setIsDeleteModalOpen(true); 
+  };
+
   const closeDeleteModal = () => { setIsDeleteModalOpen(false); setBlogToDelete(null); };
-  const handleEdit = (slug) => { navigate(`/admin/edit-blog/${slug}`); };
+
+  // ✅ CHECK OWNERSHIP BEFORE EDITING
+  const handleEdit = (blog) => { 
+      const isAuthor = blog.author?._id === currentUser?._id;
+
+      if (!isAuthor) {
+          return toast.error(`Access Denied: This post belongs to ${blog.author?.username}.`);
+      }
+
+      navigate(`/admin/edit-blog/${blog.slug}`); 
+  };
 
   const confirmDelete = async () => {
     if (!blogToDelete) return;
@@ -60,7 +76,7 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
             closeDeleteModal();
         }
     } catch (error) {
-        console.error(error);
+        // If the backend still throws a 403, we handle it gracefully here too
         toast.error(error.response?.data?.message || "Failed to delete blog");
     } finally {
         setIsDeleting(false);
@@ -72,8 +88,6 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
 
         {/* --- HEADER: Search & Filters --- */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            
-            {/* Left: Search Bar */}
             <div className="relative group w-full md:w-96">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-4 w-4 text-zinc-500 group-focus-within:text-white transition-colors" />
@@ -87,7 +101,6 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                 />
             </div>
 
-            {/* Right: Filter Dropdown */}
             <div className="relative" ref={filterRef}>
                 <button 
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -153,9 +166,25 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                                         <div className="flex items-center gap-2 text-zinc-500"><Calendar className="w-3 h-3" /><span className="text-xs">{new Date(blog.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <div className="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => handleEdit(blog.slug)} className="p-2 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition-colors" title="Edit"><Edit3 className="w-4 h-4" /></button>
-                                            <button onClick={() => openDeleteModal(blog)} className="p-2 hover:bg-red-500/10 text-zinc-400 hover:text-red-500 rounded-lg transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                                        {/* Actions: Visually disabled if not author, but functional to show Toast error */}
+                                        <div className={`flex justify-end gap-1 transition-opacity ${isAuthor ? 'opacity-60 group-hover:opacity-100' : 'opacity-30 group-hover:opacity-50'}`}>
+                                            
+                                            <button 
+                                                onClick={() => handleEdit(blog)} 
+                                                className={`p-2 rounded-lg transition-colors ${isAuthor ? 'hover:bg-white/10 text-zinc-400 hover:text-white' : 'cursor-not-allowed text-zinc-600 hover:text-zinc-500'}`} 
+                                                title="Edit"
+                                            >
+                                                {isAuthor ? <Edit3 className="w-4 h-4" /> : <Lock className="w-3 h-3" />}
+                                            </button>
+
+                                            <button 
+                                                onClick={() => openDeleteModal(blog)} 
+                                                className={`p-2 rounded-lg transition-colors ${isAuthor ? 'hover:bg-red-500/10 text-zinc-400 hover:text-red-500' : 'cursor-not-allowed text-zinc-600 hover:text-zinc-500'}`} 
+                                                title="Delete"
+                                            >
+                                                {isAuthor ? <Trash2 className="w-4 h-4" /> : <Lock className="w-3 h-3" />}
+                                            </button>
+
                                         </div>
                                     </td>
                                 </tr>
