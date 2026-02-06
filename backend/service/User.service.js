@@ -131,37 +131,55 @@ export const removeMember = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
     try {
-        const { name, position, username } = req.body;
-        if (username && username !== req.user.username) {
-            const formattedUsername = username
-            const existedUser = await User.findOne({ username: formattedUsername });
-            if (existedUser) {
-                return ApiResponse(res, 409, false, "This username is already taken by another user");
-            }
+        const { name, position, username, newPassword, otp } = req.body;
+        const userId = req.user._id;
+
+        // 1. SECURITY: Verify OTP before allowing changes
+        // (We find the latest OTP for this user's email)
+        const recentOTP = await OTP.findOne({ email: req.user.email }).sort({ createdAt: -1 });
+        
+        if (!recentOTP || recentOTP.otp !== otp) {
+            return ApiResponse(res, 400, false, "Invalid or expired verification code. Action denied.");
         }
-        const updatedUser = await User.findByIdAndUpdate(
-            req.user?._id,
-            {
-                $set: {
-                    name: name || req.user.name,
-                    position: position || req.user.position,
-                    username: username ? username : req.user.username
-                }
-            },
-            { new: true, runValidators: true }
-        ).select("-password");
 
-        const newToken = updatedUser.generateAccessToken();
+        // 2. Fetch User
+        const user = await User.findById(userId);
+        if (!user) return ApiResponse(res, 404, false, "User not found");
 
-        return ApiResponse(res, 200, true, "Profile updated successfully", { 
-            user: updatedUser,
-            token: newToken
+        // 3. Username Uniqueness Check
+        if (username && username !== user.username) {
+            const existingUser = await User.findOne({ username });
+            if (existingUser) {
+                return ApiResponse(res, 409, false, "Username already taken");
+            }
+            user.username = username;
+        }
+
+        // 4. Update Basic Fields
+        if (name) user.name = name;
+        if (position) user.position = position;
+
+        // 5. Update Password (If provided)
+        if (newPassword && newPassword.trim() !== "") {
+            user.password = newPassword; // The User model's pre-save hook will hash this automatically
+        }
+
+        // 6. Save (Triggers Validation & Hashing)
+        await user.save();
+
+        // 7. Generate new token (optional, but good practice if password changed)
+        const token = user.generateAccessToken();
+
+        return ApiResponse(res, 200, true, "Profile and credentials updated successfully", { 
+            user,
+            token
         });
 
     } catch (error) {
-        return ApiResponse(res, 500, false, "Error updating user profile", { error: error.message });
+        console.error("Update Error:", error);
+        return ApiResponse(res, 500, false, "Error updating profile", { error: error.message });
     }
-}
+};
 
 export const deleteUserAccount = async (req,res) =>{
     try {
@@ -174,16 +192,7 @@ export const deleteUserAccount = async (req,res) =>{
 
 export const forgotPassword = async (req, res) => {
     try {
-        const { username } = req.body; // Asking for username since email isn't in your schema yet?
-        
-        // NOTE: Usually we reset via Email. If you don't have an email field, 
-        // you must add it to the Schema first or ask for it in the body.
-        // For this example, I'll assume you pass 'email' in the body even if not in schema, 
-        // OR you should add `email: { type: String }` to your User Model.
-        
-        // Let's assume we find by Username, but we need an email to send to.
-        // If your User model DOES NOT have an email field, this won't work.
-        // --> CRITICAL: You MUST add `email` to UserSchema for this to work properly.
+        const { username } = req.body; 
         
         const user = await User.findOne({ username });
 
@@ -209,8 +218,7 @@ export const forgotPassword = async (req, res) => {
         `;
 
         try {
-            // NOTE: user.email must exist!
-            // If you haven't added email to schema, pass it explicitly in req.body for now: req.body.email
+
             await sendEmail({
                 email: req.body.email || user.email, 
                 subject: "Password Reset Request",
@@ -296,6 +304,73 @@ export const sendRegistrationOTP = async (req, res) => {
 
     } catch (error) {
         console.error("OTP Error:", error);
+        return ApiResponse(res, 500, false, "Failed to send OTP", error.message);
+    }
+};
+
+export const sendPasswordResetOTP = async (req, res) => {
+    try {
+        const { username } = req.body;
+        
+        const user = await User.findOne({ username });
+        if (!user) {
+            return ApiResponse(res, 404, false, "Identity not found in the records.");
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        await OTP.create({ email: user.email, otp });
+
+        return ApiResponse(res, 200, true, "Verification code transmitted to your registered link.", { 
+            email: user.email 
+        });
+    } catch (error) {
+        return ApiResponse(res, 500, false, "Protocol error", error.message);
+    }
+};
+
+export const resetPasswordWithOTP = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        const recentOTP = await OTP.findOne({ email }).sort({ createdAt: -1 });
+        if (!recentOTP || recentOTP.otp !== otp) {
+            return ApiResponse(res, 400, false, "Invalid or expired verification code.");
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) return ApiResponse(res, 404, false, "User not found.");
+
+        user.password = newPassword;
+        await user.save();
+
+        return ApiResponse(res, 200, true, "Security key successfully updated.");
+    } catch (error) {
+        return ApiResponse(res, 500, false, "Reset failed", error.message);
+    }
+};
+
+export const sendCurrentUserOTP = async (req, res) => {
+    try {
+        // 1. Get the user ID from the verified token (added by verifyJWT middleware)
+        const userId = req.user._id;
+
+        // 2. Fetch the user's email from the database
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return ApiResponse(res, 404, false, "User not found");
+        }
+
+        // 3. Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // 4. Save OTP to DB (This triggers the pre-save hook to send the email)
+        await OTP.create({ email: user.email, otp });
+
+        return ApiResponse(res, 200, true, "Verification code sent to your registered email");
+
+    } catch (error) {
         return ApiResponse(res, 500, false, "Failed to send OTP", error.message);
     }
 };
