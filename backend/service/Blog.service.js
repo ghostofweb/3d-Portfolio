@@ -1,0 +1,260 @@
+import { uploadOnCloudinary } from "../config/cloudinary.js";
+import { Blog } from "../models/Blog.model.js";
+import { ApiResponse } from "../utils/Response.js";
+
+const DEMO_ADMIN_EMAIL="exploreadmin@gmail.com"
+
+export const createBlog = async (req, res) => {
+    try {
+        console.log("--------- START CREATE BLOG ---------");
+        console.log("1. Received Body:", req.body);
+        console.log("2. Received File:", req.file);
+
+        const { title, slug, content, tags } = req.body;
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot create posts.");
+        }
+        if (!title || !content) {
+            console.log("❌ Validation Failed: Title or Content missing");
+            return ApiResponse(res, 400, false, "Title and Content are required");
+        }
+
+        let coverImageUrl = "";
+        
+        if (req.file) {
+            console.log("3. File detected, attempting upload to Cloudinary...");
+            const uploadedImage = await uploadOnCloudinary(req.file.path);
+            
+            if (uploadedImage) {
+                coverImageUrl = uploadedImage.url;
+                console.log("✅ Cloudinary Upload Success. URL:", coverImageUrl);
+            } else {
+                console.error("❌ Cloudinary Upload Failed: Response was null");
+            }
+        } else {
+            console.log("⚠️ No file received in req.file. Skipping image upload.");
+        }
+
+        const blog = await Blog.create({
+            title,
+            slug: slug || title.toLowerCase().replace(/ /g, '-'),
+            content,
+            tags: tags ? (typeof tags === "string" ? tags.split(",") : tags) : [],
+            coverImage: coverImageUrl,
+            author: req.user._id,
+            isPublished: true 
+        });
+
+        console.log("✅ Blog Saved to DB:", blog._id);
+        console.log("--------- END CREATE BLOG ---------");
+
+        return ApiResponse(res, 201, true, "Blog created successfully", blog);
+
+    } catch (error) {
+        console.error("❌ CRITICAL ERROR in createBlog:", error);
+        return ApiResponse(res, 500, false, error.message);
+    }
+}
+
+export const getBlogs = async (req, res) => {
+    try {
+        const { page = 1, limit = 9, search = "" } = req.query; 
+        const query = {
+            isPublished: true
+        };
+
+        // 3. Add Search Logic (Search Title OR Tags)
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: "i" } }, 
+                { tags: { $in: [new RegExp(search, "i")] } }  
+            ];
+        }
+
+        const blogs = await Blog.find(query)
+            .populate("author", "name username position") // Show author details
+            .sort({ createdAt: -1 }) // Newest first
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const count = await Blog.countDocuments(query);
+
+        return ApiResponse(res, 200, true, "Public blogs fetched successfully", {
+            blogs,
+            totalPages: Math.ceil(count / limit),
+            currentPage: Number(page),
+            totalPosts: count
+        });
+
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+}
+
+export const getBlogBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+
+        const blog = await Blog.findOneAndUpdate(
+            { slug, isPublished: true },
+            { $inc: { views: 1 } }, 
+            { new: true }
+        ).populate("author", "name username position");
+
+        if (!blog) {
+            return ApiResponse(res, 404, false, "Blog not found");
+        }
+
+        return ApiResponse(res, 200, true, "Blog fetched successfully", blog);
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+}
+
+export const editBlog = async (req, res) => {
+    try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot edit posts.");
+        }
+        const { id } = req.params;
+        const { title, content, tags, isPublished } = req.body;
+
+        const blog = await Blog.findById(id);
+
+        if (!blog) {
+            return ApiResponse(res, 404, false, "Blog not found");
+        }
+
+        if (blog.author.toString() !== req.user._id.toString()) {
+            return ApiResponse(res, 403, false, "You are not authorized to edit this blog");
+        }
+
+        let coverImageUrl = blog.coverImage;
+        if (req.file) {
+            const uploadedImage = await uploadOnCloudinary(req.file.path);
+            if (uploadedImage) {
+                coverImageUrl = uploadedImage.url;
+            }
+        }
+
+        blog.title = title || blog.title;
+        blog.content = content || blog.content;
+        blog.tags = tags ? (typeof tags === "string" ? tags.split(",") : tags) : blog.tags;
+        blog.isPublished = isPublished !== undefined ? isPublished : blog.isPublished;
+        blog.coverImage = coverImageUrl;
+
+        await blog.save();
+
+        return ApiResponse(res, 200, true, "Blog updated successfully", blog);
+
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+}
+
+export const deleteBlog = async (req, res) => {
+    try {
+
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot delete posts.");
+        }
+
+        const { id } = req.params;
+
+        const blog = await Blog.findById(id);
+
+        if (!blog) {
+            return ApiResponse(res, 404, false, "Blog not found");
+        }
+
+        const isAuthor = blog.author.toString() === req.user._id.toString();
+        const isSuperAdmin = req.user.username === 'ghostofweb'; 
+
+        if (!isAuthor && !isSuperAdmin) {
+            return ApiResponse(res, 403, false, "You are not authorized to delete this blog");
+        }
+
+        await Blog.findByIdAndDelete(id);
+
+        return ApiResponse(res, 200, true, "Blog deleted successfully");
+
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+}
+export const getBlogForEdit = async (req, res) => {
+    try {
+        const { slug } = req.params;
+
+        // Find by slug, BUT do not filter by isPublished (so we can edit drafts)
+        // And do NOT increment views
+        const blog = await Blog.findOne({ slug }).populate("author", "name username");
+
+        if (!blog) {
+            return ApiResponse(res, 404, false, "Blog not found");
+        }
+
+        // Optional: Security check to ensure only the author can fetch for editing
+        if (blog.author._id.toString() !== req.user._id.toString()) {
+             return ApiResponse(res, 403, false, "Unauthorized to edit this blog");
+        }
+
+        return ApiResponse(res, 200, true, "Blog details fetched for editing", blog);
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+}
+
+export const getAllBlogs = async (req, res) => {
+    try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot upload files.");
+        }
+        const { page = 1, limit = 10, search = "" } = req.query;
+        
+        // Create a search query
+        const query = search 
+            ? { title: { $regex: search, $options: "i" } } // Case-insensitive search
+            : {};
+
+        const blogs = await Blog.find(query)
+            .populate("author", "name username position")
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const count = await Blog.countDocuments(query);
+
+        return ApiResponse(res, 200, true, "Blogs fetched successfully", {
+            blogs,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page
+        });
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+}
+
+export const uploadBlogImage = async (req, res) => {
+    try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot upload files.");
+        }
+        if (!req.file) {
+            return ApiResponse(res, 400, false, "No image file provided");
+        }
+
+        const uploadedImage = await uploadOnCloudinary(req.file.path);
+
+        if (!uploadedImage) {
+            return ApiResponse(res, 500, false, "Failed to upload image");
+        }
+        return res.status(200).json({
+            success: true,
+            url: uploadedImage.url
+        });
+
+    } catch (error) {
+        return ApiResponse(res, 500, false, error.message);
+    }
+};
