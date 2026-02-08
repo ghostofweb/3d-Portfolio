@@ -10,6 +10,13 @@ dotenv.config();
 
 const app = express();
 
+app.use(
+  cors({
+    origin: "https://ghostofweb.vercel.app",
+    credentials: true
+  })
+);
+
 connectDB();
 app.use(cors());
 app.use(helmet());
@@ -22,6 +29,6 @@ app.get("/",(req,res)=>{
 
 app.use("/api/blog",BlogRouter);
 app.use("/api/user", UserRouter);
-app.listen(3000,()=>{
-    console.log("Server is running on port 3000")
-})
+// app.listen(3000,()=>{
+//     console.log("Server is running on port 3000")
+// })
