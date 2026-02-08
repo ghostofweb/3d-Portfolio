@@ -2,6 +2,8 @@ import { OTP } from "../models/OTP.model.js";
 import { User } from "../models/User.model.js"
 import { ApiResponse } from "../utils/Response.js";
 
+const DEMO_ADMIN_EMAIL="exploreadmin@gmail.com"
+
 export const registerUser = async (req, res) => {
     try {
         // ✅ Now accepting 'email' and 'otp'
@@ -108,6 +110,9 @@ export const getUserProfile = async (req, res) => {
 
 export const removeMember = async (req, res) => {
     try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot remove team members.");
+        }
         const { id } = req.params;
 
         // 1. Find the user being deleted
@@ -131,6 +136,9 @@ export const removeMember = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
     try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot update profile.");
+        }
         const { name, position, username, newPassword, otp } = req.body;
         const userId = req.user._id;
 
@@ -183,6 +191,9 @@ export const updateUserProfile = async (req, res) => {
 
 export const deleteUserAccount = async (req,res) =>{
     try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot delete account.");
+        }
         await User.findByIdAndDelete(req.user?._id);
         return ApiResponse(res, 200, true, "User account deleted successfully");
     } catch (error) {
@@ -198,6 +209,10 @@ export const forgotPassword = async (req, res) => {
 
         if (!user) {
             return ApiResponse(res, 404, false, "User not found");
+        }
+
+        if (user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot request password reset links.");
         }
 
         // Generate Token
@@ -262,7 +277,9 @@ export const resetPassword = async (req, res) => {
         if (!user) {
             return ApiResponse(res, 400, false, "Invalid or expired token");
         }
-
+        if (user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin password cannot be changed.");
+        }
         // Set new password (the pre-save hook will hash it automatically)
         user.password = password;
         
@@ -316,7 +333,9 @@ export const sendPasswordResetOTP = async (req, res) => {
         if (!user) {
             return ApiResponse(res, 404, false, "Identity not found in the records.");
         }
-
+        if (user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Password reset is disabled for the Demo Admin.");
+        }
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
         await OTP.create({ email: user.email, otp });
@@ -332,7 +351,9 @@ export const sendPasswordResetOTP = async (req, res) => {
 export const resetPasswordWithOTP = async (req, res) => {
     try {
         const { email, otp, newPassword } = req.body;
-
+        if (email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Security Protocol: Demo Admin is immutable.");
+        }
         const recentOTP = await OTP.findOne({ email }).sort({ createdAt: -1 });
         if (!recentOTP || recentOTP.otp !== otp) {
             return ApiResponse(res, 400, false, "Invalid or expired verification code.");
@@ -352,10 +373,11 @@ export const resetPasswordWithOTP = async (req, res) => {
 
 export const sendCurrentUserOTP = async (req, res) => {
     try {
-        // 1. Get the user ID from the verified token (added by verifyJWT middleware)
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot request OTPs.");
+        }
         const userId = req.user._id;
 
-        // 2. Fetch the user's email from the database
         const user = await User.findById(userId);
 
         if (!user) {

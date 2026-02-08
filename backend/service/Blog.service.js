@@ -2,6 +2,8 @@ import { uploadOnCloudinary } from "../config/cloudinary.js";
 import { Blog } from "../models/Blog.model.js";
 import { ApiResponse } from "../utils/Response.js";
 
+const DEMO_ADMIN_EMAIL="exploreadmin@gmail.com"
+
 export const createBlog = async (req, res) => {
     try {
         console.log("--------- START CREATE BLOG ---------");
@@ -9,7 +11,9 @@ export const createBlog = async (req, res) => {
         console.log("2. Received File:", req.file);
 
         const { title, slug, content, tags } = req.body;
-
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot create posts.");
+        }
         if (!title || !content) {
             console.log("❌ Validation Failed: Title or Content missing");
             return ApiResponse(res, 400, false, "Title and Content are required");
@@ -54,11 +58,34 @@ export const createBlog = async (req, res) => {
 
 export const getBlogs = async (req, res) => {
     try {
-        const blogs = await Blog.find({ isPublished: true })
-            .populate("author", "name username position")
-            .sort({ createdAt: -1 });
+        const { page = 1, limit = 9, search = "" } = req.query; 
+        const query = {
+            isPublished: true
+        };
 
-        return ApiResponse(res, 200, true, "Blogs fetched successfully", blogs);
+        // 3. Add Search Logic (Search Title OR Tags)
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: "i" } }, 
+                { tags: { $in: [new RegExp(search, "i")] } }  
+            ];
+        }
+
+        const blogs = await Blog.find(query)
+            .populate("author", "name username position") // Show author details
+            .sort({ createdAt: -1 }) // Newest first
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const count = await Blog.countDocuments(query);
+
+        return ApiResponse(res, 200, true, "Public blogs fetched successfully", {
+            blogs,
+            totalPages: Math.ceil(count / limit),
+            currentPage: Number(page),
+            totalPosts: count
+        });
+
     } catch (error) {
         return ApiResponse(res, 500, false, error.message);
     }
@@ -86,6 +113,9 @@ export const getBlogBySlug = async (req, res) => {
 
 export const editBlog = async (req, res) => {
     try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot edit posts.");
+        }
         const { id } = req.params;
         const { title, content, tags, isPublished } = req.body;
 
@@ -124,6 +154,11 @@ export const editBlog = async (req, res) => {
 
 export const deleteBlog = async (req, res) => {
     try {
+
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot delete posts.");
+        }
+
         const { id } = req.params;
 
         const blog = await Blog.findById(id);
@@ -132,7 +167,10 @@ export const deleteBlog = async (req, res) => {
             return ApiResponse(res, 404, false, "Blog not found");
         }
 
-        if (blog.author.toString() !== req.user._id.toString()) {
+        const isAuthor = blog.author.toString() === req.user._id.toString();
+        const isSuperAdmin = req.user.username === 'ghostofweb'; 
+
+        if (!isAuthor && !isSuperAdmin) {
             return ApiResponse(res, 403, false, "You are not authorized to delete this blog");
         }
 
@@ -144,7 +182,6 @@ export const deleteBlog = async (req, res) => {
         return ApiResponse(res, 500, false, error.message);
     }
 }
-
 export const getBlogForEdit = async (req, res) => {
     try {
         const { slug } = req.params;
@@ -170,6 +207,9 @@ export const getBlogForEdit = async (req, res) => {
 
 export const getAllBlogs = async (req, res) => {
     try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot upload files.");
+        }
         const { page = 1, limit = 10, search = "" } = req.query;
         
         // Create a search query
@@ -197,6 +237,9 @@ export const getAllBlogs = async (req, res) => {
 
 export const uploadBlogImage = async (req, res) => {
     try {
+        if (req.user.email === DEMO_ADMIN_EMAIL) {
+            return ApiResponse(res, 403, false, "Demo Admin cannot upload files.");
+        }
         if (!req.file) {
             return ApiResponse(res, 400, false, "No image file provided");
         }
