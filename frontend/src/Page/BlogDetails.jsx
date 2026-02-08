@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { ArrowLeft, Calendar, Clock, User, Share2, Loader2, Tag, ChevronUp, Terminal } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, User, Share2, Loader2, Tag, ChevronUp, Terminal, Check, Copy } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'react-toastify';
@@ -11,11 +11,12 @@ import { toast } from 'react-toastify';
 // --- LIGHTBOX & SYNTAX HIGHLIGHTING ---
 import Lightbox from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import Captions from "yet-another-react-lightbox/plugins/captions"; // Optional: Shows alt text
 import "yet-another-react-lightbox/styles.css";
-import 'prismjs/plugins/autoloader/prism-autoloader';
+import "yet-another-react-lightbox/plugins/captions.css";
+
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css'; // Dark Theme
-// Import languages you usually write in
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-jsx';
 import 'prismjs/components/prism-python';
@@ -33,7 +34,7 @@ const BlogDetails = () => {
     // Lightbox State
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
-    const [blogImages, setBlogImages] = useState([]);
+    const [slides, setSlides] = useState([]); // Unified slides array
 
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
@@ -54,67 +55,92 @@ const BlogDetails = () => {
         fetchBlog();
     }, [slug]);
 
-    // --- DOM MANIPULATION: Syntax Highlighting, Copy Buttons, Image Click ---
-useEffect(() => {
-    if (!blog) return;
+    // --- DOM HANDLING: Images & Code Blocks ---
+    useEffect(() => {
+        if (!blog) return;
 
-    setTimeout(() => {
-        // 1. Prepare blocks for Prism
-        const preBlocks = document.querySelectorAll('pre');
-        preBlocks.forEach((pre) => {
-            // If Quill used 'ql-syntax', Prism might need a hint
-            if (pre.classList.contains('ql-syntax') && !pre.classList.contains('language-javascript')) {
-                pre.classList.add('language-javascript'); // Default fallback
-            }
+        // Give React a moment to render the HTML string
+        setTimeout(() => {
+            // 1. SYNTAX HIGHLIGHTING & COPY BUTTONS
+            Prism.highlightAll();
             
-            // Ensure there is a <code> tag inside (Prism best practice)
-            if (!pre.querySelector('code')) {
-                const codeContent = pre.innerHTML;
-                pre.innerHTML = `<code>${codeContent}</code>`;
+            const preBlocks = document.querySelectorAll('pre');
+            preBlocks.forEach((pre) => {
+                // Prevent duplicate buttons if re-render happens
+                if (pre.parentNode.classList.contains('code-wrapper')) return;
+
+                // Create Wrapper
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-wrapper relative my-8 rounded-xl overflow-hidden shadow-2xl bg-[#0f0f11] group';
+                pre.parentNode.insertBefore(wrapper, pre);
+                wrapper.appendChild(pre);
+
+                // Create Copy Button
+                const btn = document.createElement('button');
+                btn.className = 'absolute top-3 right-3 p-2 bg-white/10 hover:bg-white/20 rounded-md transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100';
+                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+                
+                btn.onclick = () => {
+                    const code = pre.querySelector('code')?.innerText || pre.innerText;
+                    navigator.clipboard.writeText(code);
+                    
+                    // Show "Check" Icon
+                    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                    
+                    // Revert after 2s
+                    setTimeout(() => {
+                        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+                    }, 2000);
+                };
+
+                wrapper.appendChild(btn);
+            });
+
+            // 2. IMAGE LIGHTBOX SETUP
+            const contentImages = Array.from(document.querySelectorAll('.prose-content img'));
+            
+            // Build the slides array (Cover Image + Content Images)
+            const newSlides = [];
+            if (blog.coverImage) {
+                newSlides.push({ src: blog.coverImage, alt: blog.title });
             }
-        });
+            contentImages.forEach(img => {
+                newSlides.push({ src: img.src, alt: img.alt || "Blog image" });
+            });
+            setSlides(newSlides);
 
-        // 2. Highlight
-        Prism.highlightAll();
+            // Attach Click Listeners to DOM Images
+            contentImages.forEach((img, index) => {
+                img.style.cursor = 'zoom-in';
+                img.classList.add('hover:opacity-90', 'transition-opacity');
+                
+                img.onclick = (e) => {
+                    e.preventDefault();
+                    // Calculate correct index: If cover exists, content images start at index 1
+                    const targetIndex = blog.coverImage ? index + 1 : index;
+                    setLightboxIndex(targetIndex);
+                    setLightboxOpen(true);
+                };
+            });
 
-        // 3. Add Copy Button (Your existing logic...)
-        // ... rest of your code
-    }, 100);
-}, [blog]);
+        }, 150); // Slight delay to ensure DOM is ready
+    }, [blog]);
 
-    // --- SHARE HANDLER (Mobile Native + Desktop Clipboard) ---
+    // --- UTILS ---
     const handleShare = async () => {
         const shareData = {
-            title: blog.title,
-            text: blog.title,
+            title: blog?.title,
+            text: `Read this article: ${blog?.title}`,
             url: window.location.href,
         };
 
         if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.log("Share skipped");
-            }
+            try { await navigator.share(shareData); } catch (err) { /* User cancelled */ }
         } else {
             navigator.clipboard.writeText(window.location.href);
-            toast.success("Link copied to clipboard!", { 
-                position: "bottom-center", 
-                autoClose: 2000, 
-                theme: "dark" 
-            });
+            toast.success("Link copied to clipboard!", { theme: "dark", position: "bottom-center" });
         }
     };
-
-    // --- SCROLL TO TOP ---
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 400) setShowScrollTop(true);
-            else setShowScrollTop(false);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -123,13 +149,18 @@ useEffect(() => {
         return Math.ceil(text.split(/\s+/).length / 200);
     };
 
+    // --- SCROLL LISTENER ---
+    useEffect(() => {
+        const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     if (loading) return <div className="min-h-screen bg-[#050505] flex justify-center items-center"><Loader2 className="w-10 h-10 animate-spin text-indigo-500" /></div>;
     if (!blog) return <div className="min-h-screen bg-[#050505] flex justify-center items-center text-white">Blog not found.</div>;
 
-    const pageUrl = window.location.href;
     const metaDescription = blog.content.replace(/<[^>]*>/g, '').substring(0, 160) + "...";
     const metaImage = blog.coverImage || "https://yourwebsite.com/default-share-image.jpg";
-    const publishDate = new Date(blog.createdAt).toISOString();
 
     return (
         <div className="min-h-screen bg-[#050505] text-zinc-300 font-sans selection:bg-indigo-500/30 pb-20 relative">
@@ -139,24 +170,14 @@ useEffect(() => {
                 <meta property="og:title" content={blog.title} />
                 <meta property="og:image" content={metaImage} />
                 <meta name="twitter:card" content="summary_large_image" />
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "BlogPosting",
-                        "headline": blog.title,
-                        "image": [metaImage],
-                        "datePublished": publishDate,
-                        "author": { "@type": "Person", "name": blog.author?.name || "GhostOfWeb" }
-                    })}
-                </script>
             </Helmet>
 
-            <motion.div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 origin-left z-50 shadow-[0_0_15px_rgba(99,102,241,0.6)]" style={{ scaleX }} />
+            <motion.div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600 origin-left z-50" style={{ scaleX }} />
 
             <div className="fixed top-0 left-0 w-full z-40 bg-[#050505]/80 backdrop-blur-md border-b border-white/5 transition-all duration-300">
                 <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
                     <button onClick={() => navigate('/blogs')} className="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors text-sm font-medium">
-                        <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors"><ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" /></div>
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                         <span className="hidden sm:inline">Back to Archives</span>
                     </button>
                     <span className="text-sm font-bold text-white truncate max-w-[200px] opacity-0 sm:opacity-100 transition-opacity">{blog.title}</span>
@@ -173,6 +194,7 @@ useEffect(() => {
                         ))}
                     </div>
                     <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight mb-8 tracking-tight drop-shadow-lg">{blog.title}</h1>
+                    
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex items-center justify-center text-white font-bold shadow-inner">
@@ -199,8 +221,12 @@ useEffect(() => {
                     </div>
                 </header>
 
+                {/* COVER IMAGE - Click to open Lightbox at Index 0 */}
                 {blog.coverImage && (
-                    <div className="mb-16 relative group rounded-2xl overflow-hidden shadow-2xl shadow-black/50 cursor-zoom-in" onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}>
+                    <div 
+                        className="mb-16 relative group rounded-2xl overflow-hidden shadow-2xl shadow-black/50 cursor-zoom-in"
+                        onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+                    >
                         <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition duration-1000"></div>
                         <div className="relative bg-zinc-900 border border-white/10 aspect-video md:aspect-[21/9]">
                             <img src={blog.coverImage} alt={blog.title} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-700"/>
@@ -221,16 +247,20 @@ useEffect(() => {
                 </div>
             </article>
 
-            {/* Lightbox Component */}
+            {/* LIGHTBOX VIEWER */}
             <Lightbox
                 open={lightboxOpen}
                 close={() => setLightboxOpen(false)}
                 index={lightboxIndex}
-                slides={blog.coverImage ? [{ src: blog.coverImage }, ...blogImages] : blogImages}
-                plugins={[Zoom]}
+                slides={slides}
+                plugins={[Zoom, Captions]}
                 animation={{ fade: 250 }}
-                zoom={{ maxZoomPixelRatio: 3 }}
+                zoom={{ maxZoomPixelRatio: 3 }} // Enables deep zoom
                 styles={{ container: { backgroundColor: "rgba(0, 0, 0, 0.95)" } }}
+                render={{
+                    buttonPrev: slides.length <= 1 ? () => null : undefined,
+                    buttonNext: slides.length <= 1 ? () => null : undefined,
+                }}
             />
 
             <AnimatePresence>
@@ -246,99 +276,37 @@ useEffect(() => {
             </AnimatePresence>
 
             <style>{`
-                .prose-content pre code {
-    background: transparent !important;
-    padding: 0 !important;
-    border: none !important;
-    text-shadow: none !important;
-}
-
-/* Prism Token Colors (Tomorrow Night Theme) */
-.token.comment, .token.prolog, .token.doctype, .token.cdata { color: #999; }
-.token.punctuation { color: #ccc; }
-.token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted { color: #f08d49; }
-.token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted { color: #7ec699; }
-.token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string { color: #a67f59; }
-.token.atrule, .token.attr-value, .token.keyword { color: #cc99cd; }
-.token.function, .token.class-name { color: #f08d49; }
-.token.regex, .token.important, .token.variable { color: #e90; }
-
-                /* --- GENERAL TYPOGRAPHY --- */
-                .prose-content { font-size: 1.125rem; line-height: 1.8; color: #d4d4d8; /* zinc-300 */ }
-                .prose-content h1, .prose-content h2, .prose-content h3 { color: #fff; font-weight: 700; margin-top: 2.5em; margin-bottom: 0.8em; letter-spacing: -0.02em; }
+                /* --- TYPOGRAPHY FIXES --- */
+                .prose-content { font-size: 1.125rem; line-height: 1.8; color: #d4d4d8; }
+                .prose-content h1, .prose-content h2, .prose-content h3 { color: #fff; font-weight: 700; margin-top: 2.5em; margin-bottom: 0.8em; }
                 .prose-content h2 { font-size: 1.875rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.3em; margin-top: 3em; }
-                .prose-content h3 { font-size: 1.5rem; color: #e0e7ff; margin-top: 2em; }
-                .prose-content a { color: #818cf8; text-decoration: none; border-bottom: 1px solid rgba(129, 140, 248, 0.4); transition: border 0.2s, color 0.2s; }
+                .prose-content a { color: #818cf8; text-decoration: none; border-bottom: 1px solid rgba(129, 140, 248, 0.4); transition: all 0.2s; }
                 .prose-content a:hover { color: #a5b4fc; border-bottom-color: #a5b4fc; }
-                
-                /* --- CODE BLOCK STYLING (Mac Terminal Look) --- */
-                .prose-content pre { 
-                    background: #09090b !important; /* Extremely Dark */
+
+                /* --- CODE BLOCKS (MAC STYLE) --- */
+                .code-wrapper pre { 
+                    margin: 0 !important; 
+                    background: #09090b !important; 
                     padding: 3.5rem 1.5rem 1.5rem 1.5rem !important; 
-                    border-radius: 0.75rem; 
-                    overflow-x: auto; 
-                    border: 1px solid rgba(255,255,255,0.1);
-                    position: relative;
+                    border: none !important;
                 }
-                
-                /* Mac Window Header */
-                .prose-content pre::before {
+                .code-wrapper::before {
                     content: "";
                     position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 2.5rem;
+                    top: 0; left: 0; width: 100%; height: 2.5rem;
                     background: #18181b; 
                     border-bottom: 1px solid rgba(255,255,255,0.05);
-                    border-radius: 0.75rem 0.75rem 0 0;
                     z-index: 10;
                 }
-
-                /* Mac Window Dots */
-                .prose-content pre::after {
+                .code-wrapper::after {
                     content: "• • •";
                     position: absolute;
-                    top: 0.3rem;
-                    left: 1rem;
-                    font-size: 2rem;
-                    line-height: 1;
-                    letter-spacing: 2px;
+                    top: 0.6rem; left: 1rem;
+                    font-size: 1.5rem; line-height: 1; letter-spacing: 4px;
                     background: linear-gradient(to right, #ef4444 33%, #eab308 33%, #eab308 66%, #22c55e 66%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     z-index: 11;
-                }
-
-                /* Code Font Adjustment */
-                .prose-content code { 
-                    font-family: 'JetBrains Mono', 'Fira Code', monospace; 
-                    font-size: 0.9em; 
-                    text-shadow: none !important; /* Remove Prism shadow for cleaner look */
-                }
-
-                /* Inline Code (e.g. \`const x\`) */
-                .prose-content p code, .prose-content li code { 
-                    background: rgba(255,255,255,0.1); 
-                    color: #a5b4fc; 
-                    padding: 0.2em 0.4em; 
-                    border-radius: 0.3em; 
-                    font-size: 0.85em; 
-                    border: 1px solid rgba(255,255,255,0.1);
-                }
-
-                /* --- LISTS & QUOTES --- */
-                .prose-content ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1.5em; }
-                .prose-content ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1.5em; }
-                .prose-content li { margin-bottom: 0.5em; color: #d4d4d8; padding-left: 0.5em; }
-                .prose-content blockquote { 
-                    border-left: 4px solid #6366f1; 
-                    padding: 1rem 1.5rem; 
-                    margin: 2.5em 0; 
-                    font-style: italic; 
-                    color: #a1a1aa; 
-                    background: rgba(99,102,241,0.05); 
-                    border-radius: 0 0.5rem 0.5rem 0; 
                 }
 
                 /* --- IMAGES --- */
@@ -346,7 +314,14 @@ useEffect(() => {
                     border-radius: 0.75rem; 
                     margin: 3em auto; 
                     border: 1px solid rgba(255,255,255,0.1); 
-                    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); 
+                    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+                }
+                
+                /* Prism Token Overrides for Consistency */
+                code[class*="language-"], pre[class*="language-"] { 
+                    text-shadow: none !important; 
+                    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+                    font-size: 0.9em !important;
                 }
             `}</style>
         </div>
