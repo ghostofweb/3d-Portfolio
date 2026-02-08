@@ -4,8 +4,8 @@ import axios from 'axios';
 import { 
     LayoutDashboard, PenTool, Users, LogOut, Plus, 
     Loader2, Settings, UserCog, Save, X, KeyRound, 
-    ShieldCheck, Fingerprint, Sparkles, CheckCircle2, Eye 
-} from 'lucide-react';
+    ShieldCheck, Fingerprint, Sparkles, CheckCircle2, Eye, Menu 
+} from 'lucide-react'; // Added Menu icon
 import { toast } from 'react-toastify';
 
 import Overview from '../component/dashboard/Overview.jsx';
@@ -34,6 +34,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
   const [users, setUsers] = useState([]); 
+
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Pagination & Search
   const [page, setPage] = useState(1);
@@ -123,31 +126,67 @@ const Dashboard = () => {
       navigate('/admin/create-blog');
   };
 
+  // Helper to close menu on mobile selection
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-[#000000] text-white flex font-sans selection:bg-white/20 relative">
+    <div className="min-h-screen bg-[#000000] text-white flex flex-col md:flex-row font-sans selection:bg-white/20 relative">
       
       {/* 🛑 3. DEMO BANNER */}
       {isDemo && (
-          <div className="fixed top-0 left-64 right-0 z-[60] bg-indigo-600/90 backdrop-blur-sm text-white text-xs font-bold text-center py-1.5 border-b border-white/10 shadow-xl flex items-center justify-center gap-2">
+          <div className="fixed top-0 left-0 right-0 md:left-64 z-[60] bg-indigo-600/95 backdrop-blur-sm text-white text-[10px] md:text-xs font-bold text-center py-1.5 border-b border-white/10 shadow-xl flex items-center justify-center gap-2">
               <Eye className="w-3 h-3" />
-              <span>DEMO MODE ACTIVE: Read-only access enabled. Changes will not be saved.</span>
+              <span className="truncate px-2">DEMO MODE ACTIVE: Read-only access enabled.</span>
           </div>
       )}
 
+      {/* MOBILE HEADER (Visible only on small screens) */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-white/[0.08] bg-[#000000] sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+              <span className="text-black font-bold text-lg">G</span>
+            </div>
+            <span className="font-bold text-lg tracking-tight">GhostOfWeb</span>
+        </div>
+        <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 text-zinc-400 hover:text-white"
+        >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* MOBILE BACKDROP OVERLAY */}
+      {isMobileMenuOpen && (
+        <div 
+            className="fixed inset-0 bg-black/80 z-40 md:hidden backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
-      <aside className="w-64 border-r border-white/[0.08] flex flex-col justify-between fixed h-full bg-[#000000] z-50">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-[#000000] border-r border-white/[0.08] flex flex-col justify-between
+        transform transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:translate-x-0 md:static md:h-screen md:flex
+      `}>
         <div className="p-4">
-          <div className="flex items-center gap-3 px-2 py-4 mb-6">
+          {/* Logo - Hidden on mobile inside sidebar as it's in the top bar */}
+          <div className="hidden md:flex items-center gap-3 px-2 py-4 mb-6">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.2)]">
               <span className="text-black font-bold text-lg">G</span>
             </div>
             <span className="font-bold text-lg tracking-tight">GhostOfWeb</span>
           </div>
 
-          <nav className="space-y-1">
-            <SidebarItem icon={LayoutDashboard} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-            <SidebarItem icon={PenTool} label="Blog Posts" active={activeTab === 'blogs'} onClick={() => setActiveTab('blogs')} />
-            <SidebarItem icon={Users} label="Team Members" active={activeTab === 'users'} onClick={() => setActiveTab('users')} />
+          <nav className="space-y-1 mt-4 md:mt-0">
+            <SidebarItem icon={LayoutDashboard} label="Overview" active={activeTab === 'overview'} onClick={() => handleTabChange('overview')} />
+            <SidebarItem icon={PenTool} label="Blog Posts" active={activeTab === 'blogs'} onClick={() => handleTabChange('blogs')} />
+            <SidebarItem icon={Users} label="Team Members" active={activeTab === 'users'} onClick={() => handleTabChange('users')} />
           </nav>
         </div>
 
@@ -162,8 +201,8 @@ const Dashboard = () => {
               </p>
               <p className="text-[10px] text-zinc-500 truncate uppercase tracking-wider">{user?.position || 'Admin'}</p>
             </div>
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 bg-[#050505] shadow-[-10px_0_10px_#050505]">
-                <button onClick={() => setIsProfileModalOpen(true)} className="p-1.5 hover:bg-white/10 hover:text-white rounded-md transition-colors text-zinc-500"><Settings className="w-4 h-4" /></button>
+            <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute right-2 bg-[#050505] shadow-[-10px_0_10px_#050505]">
+                <button onClick={() => { setIsProfileModalOpen(true); setIsMobileMenuOpen(false); }} className="p-1.5 hover:bg-white/10 hover:text-white rounded-md transition-colors text-zinc-500"><Settings className="w-4 h-4" /></button>
                 <button onClick={handleLogout} className="p-1.5 hover:bg-red-500/10 hover:text-red-500 rounded-md transition-colors text-zinc-500"><LogOut className="w-4 h-4" /></button>
             </div>
           </div>
@@ -171,12 +210,15 @@ const Dashboard = () => {
       </aside>
 
       {/* MAIN CONTENT */}
-      {/* 🛑 Add top padding if demo banner is active so content isn't hidden */}
-      <main className={`flex-1 ml-64 p-8 max-w-7xl mx-auto w-full ${isDemo ? 'pt-14' : ''}`}>
-        <header className="flex justify-between items-end mb-10 border-b border-white/[0.06] pb-6">
+      {/* 🛑 Adjusted margins: ml-0 for mobile, md:ml-0 (since sidebar is now flex item on desktop, we don't need margin if using flex layout, OR maintain fixed sidebar logic) */}
+      {/* If keeping sidebar fixed on desktop as per original design, use md:ml-64. But since I switched sidebar to md:static in flex container, we remove margin */}
+      {/* Let's stick to the Fixed Sidebar Logic for Desktop to ensure content scrolling doesn't scroll sidebar */}
+      
+      <main className={`flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto h-screen ${isDemo ? 'pt-14' : ''}`}>
+        <header className="flex flex-col md:flex-row justify-between md:items-end mb-6 md:mb-10 border-b border-white/[0.06] pb-6 gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white capitalize">{activeTab.replace('blogs', 'Content')}</h1>
-            <p className="text-sm text-zinc-500 mt-2">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white capitalize">{activeTab.replace('blogs', 'Content')}</h1>
+            <p className="text-xs md:text-sm text-zinc-500 mt-2">
                 {activeTab === 'overview' && 'Welcome back, Master. Here is the current state of play.'}
                 {activeTab === 'blogs' && 'Forge, edit, and publish your latest stories.'}
                 {activeTab === 'users' && 'Manage access levels and team composition.'}
@@ -185,7 +227,7 @@ const Dashboard = () => {
           {activeTab === 'blogs' && (
              <button 
                 onClick={handleCreateClick} 
-                className={`bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-200 transition-all flex items-center gap-2 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] ${isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full md:w-auto bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] ${isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
              >
                 <Plus className="w-4 h-4" /> Create Post
              </button>
@@ -297,7 +339,7 @@ const SecureEditModal = ({ user, onClose, onSuccess, isDemo }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full max-w-md bg-[#090909] border border-white/10 rounded-2xl shadow-2xl p-8 animate-in fade-in zoom-in-95 ring-1 ring-white/5">
+            <div className="relative w-full max-w-md bg-[#090909] border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 animate-in fade-in zoom-in-95 ring-1 ring-white/5 max-h-[90vh] overflow-y-auto">
                 <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
                 
                 <div className="mb-6 flex items-center gap-3">
@@ -342,7 +384,7 @@ const SecureEditModal = ({ user, onClose, onSuccess, isDemo }) => {
                             <input 
                                 name="newPassword" 
                                 type="password" 
-                                placeholder="Enter new password (leave empty to keep current)" 
+                                placeholder="Enter new password" 
                                 onChange={handleChange} 
                                 className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-indigo-500 outline-none placeholder:text-zinc-600 transition-colors focus:border-indigo-500/50" 
                             />

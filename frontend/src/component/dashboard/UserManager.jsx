@@ -4,11 +4,10 @@ import {
     Plus, Shield, Briefcase, X, 
     Loader2, CheckCircle2, Sparkles, 
     Trash2, Crown, AlertTriangle, Fingerprint,
-    Mail, KeyRound, Lock // Added Lock icon for visual feedback
+    Mail, KeyRound, Lock 
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// ✅ Accept currentUser prop
 const UserManager = ({ currentUser, isDemo }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -65,9 +64,10 @@ const UserManager = ({ currentUser, isDemo }) => {
     };
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative min-h-[50vh]">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative min-h-[50vh] pb-20 md:pb-0">
             
             {/* --- HEADER --- */}
+            {/* Mobile: Stack vertically | Desktop: Row with space between */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-white/5 pb-6">
                 <div>
                     <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
@@ -81,19 +81,20 @@ const UserManager = ({ currentUser, isDemo }) => {
                 {isMasterAdmin && (
                     <button 
                         onClick={() => setIsEnrollModalOpen(true)}
-                        className="group relative px-5 py-2.5 bg-white text-black text-sm font-bold rounded-lg overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]"
+                        className="w-full md:w-auto group relative px-5 py-2.5 bg-white text-black text-sm font-bold rounded-lg overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]"
                     >
-                        <span className="relative z-10 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Initiate New Member</span>
+                        <span className="relative z-10 flex items-center justify-center gap-2"><Sparkles className="w-4 h-4" /> Initiate New Member</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-zinc-200 via-white to-zinc-200 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     </button>
                 )}
             </div>
 
             {/* --- USERS GRID --- */}
+            {/* Mobile: 1 col | Tablet: 2 cols | Desktop: 3 cols */}
             {loading ? (
                 <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-zinc-600" /></div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                     {users.map((u) => {
                         const isTargetMaster = u.username === 'ghostofweb';
                         
@@ -102,32 +103,31 @@ const UserManager = ({ currentUser, isDemo }) => {
                                 {isTargetMaster && <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-500/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />}
 
                                 <div className="relative z-10 flex items-start gap-4">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg ${isTargetMaster ? 'bg-yellow-500 text-black shadow-yellow-500/20' : 'bg-zinc-900 border border-white/10 text-white'}`}>
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg flex-shrink-0 ${isTargetMaster ? 'bg-yellow-500 text-black shadow-yellow-500/20' : 'bg-zinc-900 border border-white/10 text-white'}`}>
                                         {isTargetMaster ? <Crown className="w-6 h-6 fill-black" /> : u.username[0].toUpperCase()}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
-                                            <div>
+                                            <div className="min-w-0">
                                                 <h4 className={`font-bold text-lg truncate ${isTargetMaster ? 'text-yellow-500' : 'text-white'}`}>{u.name}</h4>
-                                                <p className="text-xs text-zinc-500 font-mono mb-3">@{u.username}</p>
+                                                <p className="text-xs text-zinc-500 font-mono mb-3 truncate">@{u.username}</p>
                                             </div>
                                             
-                                            {/* ✅ CONDITION: Only show Trash icon if:
-                                                1. Current user IS Master Admin
-                                                2. Target user IS NOT Master Admin (Master cannot delete themselves)
+                                            {/* Action Button Logic:
+                                                - Mobile: Always Visible (opacity-100)
+                                                - Desktop: Hidden until hover (md:opacity-0 md:group-hover:opacity-100)
                                             */}
                                             {isMasterAdmin && !isTargetMaster ? (
                                                 <button 
                                                     onClick={() => setUserToRemove(u)}
-                                                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
                                                     title="Exile Member"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
                                             ) : (
-                                                /* Optional: Show Lock icon for others */
-                                                <div className="opacity-0 group-hover:opacity-100 p-2 text-zinc-700">
+                                                <div className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 text-zinc-700">
                                                     <Lock className="w-3 h-3" />
                                                 </div>
                                             )}
@@ -165,11 +165,10 @@ const UserManager = ({ currentUser, isDemo }) => {
     );
 };
 
-// ... (EnrollmentRitual and RemoveMemberModal remain exactly the same as your previous code)
-// Keep the EnrollmentRitual and RemoveMemberModal code here...
-
+// ==========================================
+// ENROLLMENT RITUAL MODAL (Responsive)
+// ==========================================
 const EnrollmentRitual = ({ onClose, onSuccess }) => {
-    // ... (Your existing code)
     const [step, setStep] = useState('form'); 
     const [formData, setFormData] = useState({ name: '', username: '', position: '', password: '', email: '', otp: '' });
     const [otpSent, setOtpSent] = useState(false);
@@ -177,7 +176,7 @@ const EnrollmentRitual = ({ onClose, onSuccess }) => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    // Step 1: Send OTP to Gmail
+    // Step 1: Send OTP
     const handleSendOTP = async () => {
         if (!formData.email) return toast.error("Communication link (Email) required.");
         setSendingOtp(true);
@@ -192,7 +191,7 @@ const EnrollmentRitual = ({ onClose, onSuccess }) => {
         } finally { setSendingOtp(false); }
     };
 
-    // Step 2: Register with OTP
+    // Step 2: Register
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.otp) return toast.error("Identity verification code missing.");
@@ -213,11 +212,12 @@ const EnrollmentRitual = ({ onClose, onSuccess }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose} />
-            <div className="relative w-full max-w-md bg-[#050505] border border-white/10 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/5">
+            <div className="relative w-full max-w-md bg-[#050505] border border-white/10 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/5 flex flex-col max-h-[90vh]">
                 {step === 'form' && (
-                    <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
+                    <button onClick={onClose} className="absolute top-4 right-4 text-zinc-500 hover:text-white z-10"><X className="w-5 h-5"/></button>
                 )}
-                <div className="p-8">
+                
+                <div className="p-6 md:p-8 overflow-y-auto">
                     {step === 'form' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-6">
@@ -233,7 +233,9 @@ const EnrollmentRitual = ({ onClose, onSuccess }) => {
                                     <label className="text-xs text-zinc-400 font-medium ml-1">Identity Name</label>
                                     <input name="name" required placeholder="John Doe" className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-white/20 outline-none transition-all placeholder:text-zinc-700" onChange={handleChange} />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                
+                                {/* Mobile: Stack | Tablet+: Side by Side */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-xs text-zinc-400 font-medium ml-1">Username</label>
                                         <input name="username" required placeholder="johnd" className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-white/20 outline-none placeholder:text-zinc-700" onChange={handleChange} />
@@ -247,9 +249,9 @@ const EnrollmentRitual = ({ onClose, onSuccess }) => {
                                 <div className="space-y-1">
                                     <label className="text-xs text-zinc-400 font-medium ml-1 flex items-center gap-2"><Mail className="w-3 h-3"/> Communication Link</label>
                                     <div className="flex gap-2">
-                                        <input name="email" type="email" required placeholder="agent@ghostofweb.com" disabled={otpSent} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-white/20 outline-none placeholder:text-zinc-700 disabled:opacity-50" onChange={handleChange} />
+                                        <input name="email" type="email" required placeholder="agent@ghostofweb.com" disabled={otpSent} className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-white/20 outline-none placeholder:text-zinc-700 disabled:opacity-50 min-w-0" onChange={handleChange} />
                                         {!otpSent && (
-                                            <button type="button" onClick={handleSendOTP} disabled={sendingOtp || !formData.email} className="bg-white/10 hover:bg-white/20 text-white px-4 rounded-lg text-xs font-bold transition-colors whitespace-nowrap border border-white/5 disabled:opacity-50">
+                                            <button type="button" onClick={handleSendOTP} disabled={sendingOtp || !formData.email} className="shrink-0 bg-white/10 hover:bg-white/20 text-white px-4 rounded-lg text-xs font-bold transition-colors whitespace-nowrap border border-white/5 disabled:opacity-50">
                                                 {sendingOtp ? <Loader2 className="w-4 h-4 animate-spin"/> : "Get Code"}
                                             </button>
                                         )}
@@ -294,20 +296,23 @@ const EnrollmentRitual = ({ onClose, onSuccess }) => {
     );
 };
 
+// ==========================================
+// REMOVE MEMBER MODAL
+// ==========================================
 const RemoveMemberModal = ({ user, onClose, onConfirm }) => {
     const [isDeleting, setIsDeleting] = useState(false);
     const handleConfirm = async () => { setIsDeleting(true); await onConfirm(); setIsDeleting(false); };
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative w-full max-w-sm bg-[#090909] border border-red-900/30 rounded-2xl p-6 shadow-2xl ring-1 ring-red-500/10">
+            <div className="relative w-full max-w-sm bg-[#090909] border border-red-900/30 rounded-2xl p-6 shadow-2xl ring-1 ring-red-500/10 animate-in fade-in zoom-in-95">
                 <div className="flex flex-col items-center text-center">
                     <AlertTriangle className="w-16 h-16 text-red-500 mb-5" />
                     <h3 className="text-xl font-bold text-white mb-2">Confirm Exile?</h3>
                     <p className="text-zinc-400 text-sm mb-8 leading-relaxed">Revoking access for <span className="text-white font-bold">{user.name}</span>. This is permanent.</p>
                     <div className="flex gap-3 w-full">
-                        <button onClick={onClose} className="flex-1 bg-zinc-900 text-zinc-300 py-3 rounded-xl text-sm border border-white/5">Cancel</button>
-                        <button onClick={handleConfirm} disabled={isDeleting} className="flex-1 bg-red-600 text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
+                        <button onClick={onClose} className="flex-1 bg-zinc-900 text-zinc-300 py-3 rounded-xl text-sm border border-white/5 hover:bg-zinc-800 transition-colors">Cancel</button>
+                        <button onClick={handleConfirm} disabled={isDeleting} className="flex-1 bg-red-600 text-white py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-colors">
                             {isDeleting ? <Loader2 className="w-4 h-4 animate-spin"/> : <Trash2 className="w-4 h-4" />} Exile
                         </button>
                     </div>

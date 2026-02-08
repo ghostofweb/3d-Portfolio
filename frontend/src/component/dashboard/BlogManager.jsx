@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   Edit3, Trash2, AlertTriangle, Calendar, User, 
-  Filter, Check, ChevronDown, Search, ChevronLeft, ChevronRight, Lock 
+  Filter, Check, ChevronDown, Search, ChevronLeft, ChevronRight, Lock, Loader2 
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -56,7 +56,7 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
 
   const closeDeleteModal = () => { setIsDeleteModalOpen(false); setBlogToDelete(null); };
 
- const handleEdit = (blog) => { 
+  const handleEdit = (blog) => { 
       // 🛑 DEMO BLOCKER
       if (isDemo) return toast.info("Editing posts is disabled in Demo Mode.");
 
@@ -92,8 +92,29 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
     } 
   };
 
+  // Helper to render Action Buttons (used in both Table and Mobile Card)
+  const ActionButtons = ({ blog, canEdit }) => (
+    <div className={`flex items-center gap-1 transition-opacity ${canEdit ? 'opacity-100' : 'opacity-50'}`}>
+        <button 
+            onClick={() => handleEdit(blog)} 
+            className={`p-2 rounded-lg transition-colors border border-transparent ${canEdit ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-600' : 'cursor-not-allowed text-zinc-600 bg-zinc-900/50'}`} 
+            title="Edit"
+        >
+            {canEdit ? <Edit3 className="w-4 h-4" /> : <Lock className="w-3 h-3" />}
+        </button>
+
+        <button 
+            onClick={() => openDeleteModal(blog)} 
+            className={`p-2 rounded-lg transition-colors border border-transparent ${canEdit ? 'bg-zinc-800 hover:bg-red-900/30 text-zinc-300 hover:text-red-400 hover:border-red-500/30' : 'cursor-not-allowed text-zinc-600 bg-zinc-900/50'}`} 
+            title="Delete"
+        >
+            {canEdit ? <Trash2 className="w-4 h-4" /> : <Lock className="w-3 h-3" />}
+        </button>
+    </div>
+  );
+
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative pb-20 md:pb-0">
 
         {/* --- HEADER: Search & Filters --- */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -110,10 +131,10 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                 />
             </div>
 
-            <div className="relative" ref={filterRef}>
+            <div className="relative w-full md:w-auto" ref={filterRef}>
                 <button 
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="flex items-center gap-2 px-3 py-2.5 bg-[#0A0A0A] border border-white/10 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:border-white/20 transition-all min-w-[140px] justify-between"
+                    className="w-full md:w-auto flex items-center gap-2 px-3 py-2.5 bg-[#0A0A0A] border border-white/10 rounded-lg text-sm font-medium text-zinc-300 hover:text-white hover:border-white/20 transition-all min-w-[140px] justify-between"
                 >
                     <div className="flex items-center gap-2">
                         <Filter className="w-4 h-4" />
@@ -123,7 +144,7 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                 </button>
 
                 {isFilterOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#0A0A0A] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20 animate-in fade-in zoom-in-95">
+                    <div className="absolute right-0 mt-2 w-full md:w-48 bg-[#0A0A0A] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20 animate-in fade-in zoom-in-95">
                         <div className="p-1">
                             <button onClick={() => { setFilter('all'); setIsFilterOpen(false); }} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${filter === 'all' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}><span>All Posts</span>{filter === 'all' && <Check className="w-3 h-3" />}</button>
                             <button onClick={() => { setFilter('mine'); setIsFilterOpen(false); }} className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${filter === 'mine' ? 'bg-white/10 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}><span>My Posts</span>{filter === 'mine' && <Check className="w-3 h-3" />}</button>
@@ -133,8 +154,8 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
             </div>
         </div>
 
-        {/* --- MAIN TABLE --- */}
-        <div className="border border-white/5 rounded-xl overflow-hidden bg-[#0A0A0A] shadow-xl flex flex-col justify-between min-h-[500px]">
+        {/* --- DESKTOP TABLE (Hidden on Mobile) --- */}
+        <div className="hidden md:block border border-white/5 rounded-xl overflow-hidden bg-[#0A0A0A] shadow-xl flex flex-col justify-between min-h-[500px]">
             <div>
                 <table className="w-full text-sm text-left">
                     <thead className="bg-[#111] text-zinc-500 font-medium border-b border-white/5">
@@ -149,7 +170,6 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                     <tbody className="divide-y divide-white/5">
                         {displayedBlogs.length > 0 ? displayedBlogs.map((blog) => {
                             const isAuthor = blog.author?._id === currentUser?._id;
-                            // ✅ Check permissions for UI
                             const canEdit = isAuthor || isSuperAdmin;
                             
                             return (
@@ -159,7 +179,7 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                                             <div className="w-12 h-12 rounded-lg bg-zinc-900 border border-white/5 overflow-hidden flex-shrink-0 relative">
                                                 {blog.coverImage ? <img src={blog.coverImage} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700"><div className="w-2 h-2 rounded-full bg-zinc-800" /></div>}
                                             </div>
-                                            <div className="flex flex-col max-w-[200px] md:max-w-xs">
+                                            <div className="flex flex-col max-w-[200px] lg:max-w-xs">
                                                 <span className="font-semibold text-zinc-200 group-hover:text-white truncate transition-colors text-[15px]">{blog.title}</span>
                                                 <span className="text-xs text-zinc-500 truncate">/{blog.slug}</span>
                                             </div>
@@ -178,24 +198,8 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                                         <div className="flex items-center gap-2 text-zinc-500"><Calendar className="w-3 h-3" /><span className="text-xs">{new Date(blog.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <div className={`flex justify-end gap-1 transition-opacity ${canEdit ? 'opacity-60 group-hover:opacity-100' : 'opacity-30 group-hover:opacity-50'}`}>
-                                            
-                                            <button 
-                                                onClick={() => handleEdit(blog)} 
-                                                className={`p-2 rounded-lg transition-colors ${canEdit ? 'hover:bg-white/10 text-zinc-400 hover:text-white' : 'cursor-not-allowed text-zinc-600 hover:text-zinc-500'}`} 
-                                                title="Edit"
-                                            >
-                                                {canEdit ? <Edit3 className="w-4 h-4" /> : <Lock className="w-3 h-3" />}
-                                            </button>
-
-                                            <button 
-                                                onClick={() => openDeleteModal(blog)} 
-                                                className={`p-2 rounded-lg transition-colors ${canEdit ? 'hover:bg-red-500/10 text-zinc-400 hover:text-red-500' : 'cursor-not-allowed text-zinc-600 hover:text-zinc-500'}`} 
-                                                title="Delete"
-                                            >
-                                                {canEdit ? <Trash2 className="w-4 h-4" /> : <Lock className="w-3 h-3" />}
-                                            </button>
-
+                                        <div className="flex justify-end">
+                                            <ActionButtons blog={blog} canEdit={canEdit} />
                                         </div>
                                     </td>
                                 </tr>
@@ -213,8 +217,8 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
                     </tbody>
                 </table>
             </div>
-
-            {/* --- PAGINATION CONTROLS --- */}
+            
+            {/* Desktop Pagination */}
             {totalPages > 1 && (
                 <div className="border-t border-white/5 bg-[#050505] p-4 flex items-center justify-between">
                     <span className="text-xs text-zinc-500">Page <span className="text-white font-medium">{page}</span> of <span className="text-white font-medium">{totalPages}</span></span>
@@ -231,10 +235,67 @@ const BlogManager = ({ blogs, refreshBlogs, currentUser, page, totalPages, onPag
             )}
         </div>
 
+        {/* --- MOBILE CARDS (Visible only on Mobile) --- */}
+        <div className="md:hidden space-y-4">
+            {displayedBlogs.length > 0 ? displayedBlogs.map((blog) => {
+                const isAuthor = blog.author?._id === currentUser?._id;
+                const canEdit = isAuthor || isSuperAdmin;
+
+                return (
+                    <div key={blog._id} className="bg-[#0A0A0A] border border-white/10 rounded-xl p-4 shadow-sm flex flex-col gap-4">
+                        {/* Card Header: Image & Title */}
+                        <div className="flex items-start gap-3">
+                             <div className="w-16 h-16 rounded-lg bg-zinc-900 border border-white/5 overflow-hidden flex-shrink-0">
+                                {blog.coverImage ? <img src={blog.coverImage} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-zinc-700"><div className="w-2 h-2 rounded-full bg-zinc-800" /></div>}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-zinc-100 text-sm line-clamp-2 leading-snug">{blog.title}</h4>
+                                <p className="text-xs text-zinc-500 mt-1 truncate">/{blog.slug}</p>
+                            </div>
+                        </div>
+
+                        {/* Card Meta Data */}
+                        <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                            <div className="flex items-center gap-2">
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border ${isAuthor ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20' : 'bg-indigo-500/20 text-indigo-400 border-indigo-500/20'}`}>{blog.author?.username?.[0]?.toUpperCase()}</div>
+                                <span className="text-xs text-zinc-400">{isAuthor ? 'You' : blog.author?.username}</span>
+                            </div>
+                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide ${blog.isPublished ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-yellow-500/5 text-yellow-500 border-yellow-500/20'}`}>{blog.isPublished ? 'Published' : 'Draft'}</span>
+                        </div>
+                        
+                        {/* Card Footer: Date & Actions */}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-zinc-500">
+                                <Calendar className="w-3 h-3" />
+                                <span className="text-[10px]">{new Date(blog.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <ActionButtons blog={blog} canEdit={canEdit} />
+                        </div>
+                    </div>
+                )
+            }) : (
+                <div className="text-center py-10 text-zinc-500 border border-white/5 rounded-xl bg-[#0A0A0A]">
+                    <div className="flex flex-col items-center">
+                        <Filter className="w-8 h-8 text-zinc-700 mb-2" />
+                        <p className="text-sm">No posts found.</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 pb-8">
+                    <button onClick={() => onPageChange(page - 1)} disabled={page === 1} className="px-4 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-xs font-medium text-zinc-300 hover:text-white disabled:opacity-50">Previous</button>
+                    <span className="text-xs text-zinc-500">Page <span className="text-white">{page}</span> of {totalPages}</span>
+                    <button onClick={() => onPageChange(page + 1)} disabled={page === totalPages} className="px-4 py-2 bg-[#0A0A0A] border border-white/10 rounded-lg text-xs font-medium text-zinc-300 hover:text-white disabled:opacity-50">Next</button>
+                </div>
+            )}
+        </div>
+
         {/* ... Delete Modal ... */}
         {isDeleteModalOpen && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeDeleteModal}></div>
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeDeleteModal}></div>
                 <div className="relative w-full max-w-sm bg-[#090909] border border-white/10 rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex flex-col items-center text-center">
                         <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
