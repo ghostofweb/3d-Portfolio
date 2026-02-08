@@ -19,13 +19,12 @@ const StatCard = ({ title, value, icon: Icon, colorClass }) => (
 );
 
 // ✅ Accept currentUser prop here
-const Overview = ({ blogs, users, currentUser }) => {
+const Overview = ({ blogs, users, currentUser, isDemo }) => {
   const navigate = useNavigate();
 
   // ✅ New Helper Function to handle clicks safely
   const handleBlogClick = (blog) => {
-    // 1. Check if the blog has an author and if IDs match
-    // Note: ensure your backend populates author with _id
+    if (isDemo) return toast.info("Editing is disabled in Demo Mode.");
     const isAuthor = blog.author?._id === currentUser?._id;
 
     if (isAuthor) {

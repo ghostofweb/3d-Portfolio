@@ -10,7 +10,7 @@ const AdminLogin = () => {
     const canvasRef = useRef(null);
 
     // Form State
-    const [formData, setFormData] = useState({ username: '', password: '' });
+    const [formData, setFormData] = useState({ username: 'exploreAdmin@gmail.com', password: 'helloworld123' });
     const [loading, setLoading] = useState(false);
     const [focusedField, setFocusedField] = useState(null);
 
@@ -317,6 +317,7 @@ const AdminLogin = () => {
                                     onFocus={() => setFocusedField('username')} onBlur={() => setFocusedField(null)} onChange={handleChange}
                                     className={`w-full bg-transparent border-none py-3.5 pl-3 pr-4 text-sm focus:ring-0 ${activeMode === 'retro' ? 'text-black placeholder:text-gray-500' : 'text-white placeholder:text-zinc-700'}`}
                                     placeholder="Username"
+                                    value={formData.username}
                                 />
                             </div>
                         </div>
@@ -331,6 +332,7 @@ const AdminLogin = () => {
                                 <input 
                                     name="password" type="password" required
                                     onFocus={() => setFocusedField('password')} onBlur={() => setFocusedField(null)} onChange={handleChange}
+                                    value={formData.password}
                                     className={`w-full bg-transparent border-none py-3.5 pl-3 pr-4 text-sm focus:ring-0 ${activeMode === 'retro' ? 'text-black placeholder:text-gray-500' : 'text-white placeholder:text-zinc-700'}`}
                                     placeholder="••••••••"
                                 />
