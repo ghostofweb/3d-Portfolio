@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import ReactQuill, { Quill } from 'react-quill';
+import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 // Syntax Highlighting (IDE Feel)
@@ -11,7 +11,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { 
   ArrowLeft, UploadCloud, X, Loader2, Save, Hash, 
   LayoutTemplate, Settings, Globe, Eye, Edit2, 
-  Image as ImageIcon, Calendar, Clock, Code, Menu
+  Image as ImageIcon, Calendar, Clock, Code
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -32,7 +32,7 @@ const dataURLtoFile = (dataurl, filename) => {
 };
 
 const CustomToolbar = () => (
-  <div id="toolbar" className="flex flex-wrap gap-1 md:gap-2 items-center border-b border-white/5 p-2 sticky top-[64px] z-30 bg-[#050505]/95 backdrop-blur-sm">
+  <div id="toolbar" className="flex flex-wrap gap-2 items-center">
     <span className="ql-formats">
       <select className="ql-header" defaultValue="" onChange={e => e.persist()}>
         <option value="1" />
@@ -65,6 +65,7 @@ const CreateBlog = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const quillRef = useRef(null);
+  const titleRef = useRef(null);
 
   // --- STATE ---
   const [title, setTitle] = useState('');
@@ -80,7 +81,7 @@ const CreateBlog = () => {
   const [viewMode, setViewMode] = useState('edit'); 
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState('');
+  const [processingStatus, setProcessingStatus] = useState(''); // "Uploading image 1 of 3..."
 
   // Auto-slug
   useEffect(() => {
@@ -88,8 +89,17 @@ const CreateBlog = () => {
     setSlug(generatedSlug);
   }, [title]);
 
+  // Auto-resize Title
+  useEffect(() => {
+    if (titleRef.current) {
+      titleRef.current.style.height = 'auto';
+      titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
+    }
+  }, [title]);
+
   // --- 1. IMAGE PROCESSING LOGIC ---
   const processContentImages = async (htmlContent) => {
+    // Parse HTML string into a DOM object
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, 'text/html');
     const images = doc.querySelectorAll('img');
@@ -97,11 +107,14 @@ const CreateBlog = () => {
 
     let updatedContent = htmlContent;
     let imageCount = 0;
+
+    // Filter only Base64 images
     const base64Images = Array.from(images).filter(img => img.src.startsWith('data:'));
 
     if (base64Images.length > 0) {
         setProcessingStatus(`Processing ${base64Images.length} images...`);
         
+        // Upload images one by one
         for (const img of base64Images) {
             imageCount++;
             setProcessingStatus(`Uploading image ${imageCount} of ${base64Images.length}...`);
@@ -111,6 +124,7 @@ const CreateBlog = () => {
             formData.append('image', file);
 
             try {
+                // Call your existing single image upload endpoint
                 const res = await axios.post(
                     `${import.meta.env.VITE_BACKEND_URL}/api/blog/upload-image`,
                     formData,
@@ -118,6 +132,7 @@ const CreateBlog = () => {
                 );
 
                 if (res.data.success) {
+                    // Replace Base64 src with Cloudinary URL in the DOM
                     img.src = res.data.url;
                 }
             } catch (err) {
@@ -126,8 +141,10 @@ const CreateBlog = () => {
                 throw new Error("Image upload failed");
             }
         }
+        // Serialize DOM back to HTML string
         updatedContent = doc.body.innerHTML;
     }
+
     return updatedContent;
   };
 
@@ -141,13 +158,15 @@ const CreateBlog = () => {
     setLoading(true);
 
     try {
+      // A. First, process all images inside the editor
       const finalContent = await processContentImages(content);
       setProcessingStatus('Saving post...');
 
+      // B. Prepare the final payload
       const formData = new FormData();
       formData.append('title', title);
       formData.append('slug', slug);
-      formData.append('content', finalContent);
+      formData.append('content', finalContent); // Send the processed HTML with Cloudinary URLs
       formData.append('tags', tags.join(',')); 
       formData.append('isPublished', isPublished);
       
@@ -155,6 +174,7 @@ const CreateBlog = () => {
         formData.append('coverImage', coverImage);
       }
 
+      // C. Send to Backend
       const token = localStorage.getItem('accessToken');
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/blog/create-blog`, 
@@ -180,6 +200,7 @@ const CreateBlog = () => {
     }
   };
 
+  // --- HANDLERS (Standard) ---
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -198,9 +219,10 @@ const CreateBlog = () => {
     }
   };
 
+  // Memoized Quill Modules
   const modules = useMemo(() => ({
     toolbar: { container: "#toolbar" },
-    syntax: { highlight: (text) => hljs.highlightAuto(text).value },
+    syntax: { highlight: (text) => hljs.highlightAuto(text).value }, // IDE Feature
     clipboard: { matchVisual: false }
   }), []);
 
@@ -219,13 +241,31 @@ const CreateBlog = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-white/20 relative overflow-x-hidden">
       
+      {/* Editor CSS for IDE Feel & Dark Mode Fixes */}
       <style>{`
+        /* Quill Container */
         .ql-container { font-family: inherit; border: none !important; }
         .ql-editor { padding: 0 !important; min-height: 60vh; color: #E4E4E7; line-height: 1.8; font-size: 1.125rem; }
         .ql-editor.ql-blank::before { color: #52525B; font-style: normal; font-size: 1.125rem; }
         
+        /* Dark Mode Toolbar Icons */
+        #toolbar .ql-stroke { stroke: #A1A1AA; }
+        #toolbar .ql-fill { fill: #A1A1AA; }
+        #toolbar button:hover .ql-stroke { stroke: #FFFFFF; }
+        #toolbar button:hover .ql-fill { fill: #FFFFFF; }
+        #toolbar .ql-active .ql-stroke { stroke: #818cf8 !important; }
+        #toolbar .ql-active .ql-fill { fill: #818cf8 !important; }
+
+        /* Dark Mode Picker */
+        #toolbar .ql-picker { color: #A1A1AA; }
+        #toolbar .ql-picker-label:hover { color: white; }
+        #toolbar .ql-picker-options { background-color: #18181B; border: 1px solid #27272A; }
+        #toolbar .ql-picker-item { color: #A1A1AA; } 
+        #toolbar .ql-picker-item:hover { color: white; }
+
+        /* IDE Code Blocks */
         .ql-snow .ql-editor pre.ql-syntax {
-            background-color: #0d1117;
+            background-color: #0d1117; /* GitHub Dark Dimmed */
             color: #c9d1d9;
             border-radius: 8px;
             padding: 1rem;
@@ -238,6 +278,7 @@ const CreateBlog = () => {
             position: relative;
         }
         
+        /* Images inside Editor */
         .ql-editor img {
             border-radius: 8px;
             max-width: 100%;
@@ -246,13 +287,16 @@ const CreateBlog = () => {
             box-shadow: 0 8px 30px rgba(0,0,0,0.5);
         }
 
-        #toolbar button { color: #71717A; transition: 0.2s; }
-        #toolbar button:hover { color: white; }
-        #toolbar .ql-active { color: #818cf8 !important; }
-        
-        /* Mobile Toolbar Fixes */
-        @media (max-width: 640px) {
-            #toolbar { overflow-x: auto; white-space: nowrap; padding-bottom: 8px; }
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            #toolbar { 
+                overflow-x: auto; 
+                white-space: nowrap; 
+                padding: 8px 16px; 
+                -webkit-overflow-scrolling: touch; 
+                background: rgba(5,5,5,0.95);
+                backdrop-filter: blur(4px);
+            }
             .ql-editor { font-size: 1rem; }
         }
       `}</style>
@@ -265,10 +309,19 @@ const CreateBlog = () => {
             <span className="text-sm font-semibold text-white tracking-tight hidden sm:block">Create Post</span>
             <div className="flex items-center gap-2 text-[10px] text-zinc-500 uppercase tracking-widest">
                 <span className="hidden xs:inline">{isPublished ? 'Public' : 'Draft'}</span>
-                <span className="hidden xs:inline">•</span> 
+                <span className="hidden xs:inline">•</span>
                 <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {readingTime} min</span>
             </div>
           </div>
+        </div>
+
+        {/* TOOLBAR CONTAINER - STICKY ON MOBILE */}
+        <div className={`
+            ${viewMode === 'edit' ? 'block' : 'hidden'}
+            fixed top-[64px] left-0 right-0 z-30 border-b border-white/10 w-full
+            md:static md:top-auto md:left-auto md:right-auto md:z-auto md:border-none md:w-auto md:bg-transparent
+        `}>
+             <CustomToolbar />
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
@@ -292,7 +345,7 @@ const CreateBlog = () => {
         </div>
       </nav>
 
-      {/* PROCESSING OVERLAY */}
+      {/* PROCESSING OVERLAY (When uploading images) */}
       {loading && processingStatus && (
           <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in">
               <div className="w-16 h-16 border-4 border-zinc-800 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
@@ -301,7 +354,7 @@ const CreateBlog = () => {
           </div>
       )}
 
-      {/* SETTINGS DRAWER (Responsive: Bottom Sheet on Mobile, Right Sidebar on Desktop) */}
+      {/* SETTINGS DRAWER (Responsive) */}
       {showSettings && (
         <div className="fixed inset-0 z-50 overflow-hidden">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
@@ -311,7 +364,6 @@ const CreateBlog = () => {
                     <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2"><LayoutTemplate className="w-4 h-4" /> Configuration</h3>
                     <button onClick={() => setShowSettings(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5" /></button>
                 </div>
-                
                 <div className="space-y-6">
                     <div className="space-y-3">
                         <label className="text-xs font-medium text-zinc-300">Visibility</label>
@@ -339,20 +391,11 @@ const CreateBlog = () => {
       )}
 
       {/* EDITOR CANVAS */}
-      <main className="pt-20 md:pt-28 pb-32 max-w-4xl mx-auto px-4 md:px-6">
+      <main className="pt-40 md:pt-28 pb-32 max-w-4xl mx-auto px-4 md:px-6">
         <div className={viewMode === 'edit' ? 'block' : 'hidden'}>
             
-            {/* Custom Toolbar rendered here on Mobile/Desktop */}
-            <div className="md:hidden sticky top-[64px] z-30 -mx-4 px-4 bg-[#050505] border-b border-white/5 mb-6">
-                 <CustomToolbar />
-            </div>
-            
-            <div className="hidden md:block mb-8">
-                 <CustomToolbar />
-            </div>
-
             {/* Cover Image Upload */}
-            <div className="group relative mb-8">
+            <div className="group relative mb-12 mt-6 md:mt-0">
                 {!previewUrl ? (
                     <div onClick={() => fileInputRef.current.click()} className="w-full h-32 md:h-48 rounded-xl border border-dashed border-zinc-800 hover:border-zinc-500 bg-zinc-900/10 hover:bg-zinc-900/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-3">
                         <div className="p-3 bg-zinc-900 rounded-full shadow-xl"><UploadCloud className="w-5 h-5 text-zinc-400" /></div>
@@ -367,15 +410,18 @@ const CreateBlog = () => {
                 <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
             </div>
 
-            <textarea 
+            {/* Title Input */}
+            <textarea
+                ref={titleRef} 
                 placeholder="Post Title" 
                 value={title} 
-                onChange={(e) => { setTitle(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }} 
+                onChange={(e) => setTitle(e.target.value)} 
                 rows={1} 
-                className="w-full bg-transparent text-3xl md:text-5xl font-extrabold text-white placeholder:text-zinc-700 border-none outline-none focus:ring-0 p-0 leading-tight mb-6 resize-none overflow-hidden" 
+                className="w-full bg-transparent text-3xl md:text-5xl font-extrabold text-white placeholder:text-zinc-700 border-none outline-none focus:ring-0 p-0 leading-tight mb-10 resize-none overflow-hidden" 
             />
 
-            <div className="flex flex-wrap items-center gap-2 mb-8">
+            {/* Tags Input */}
+            <div className="flex flex-wrap items-center gap-2 mb-12">
                 <Hash className="w-4 h-4 text-zinc-600" />
                 {tags.map((tag, i) => (
                     <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 border border-white/10 text-zinc-300">{tag} <button onClick={() => setTags(tags.filter(t => t !== tag))} className="text-zinc-500 hover:text-red-400"><X className="w-3 h-3" /></button></span>
@@ -383,6 +429,7 @@ const CreateBlog = () => {
                 <input type="text" placeholder="Add tags..." value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={handleTagKeyDown} className="bg-transparent border-none outline-none focus:ring-0 text-sm w-32 text-zinc-400 placeholder:text-zinc-600" />
             </div>
 
+            {/* Editor */}
             <div className="prose prose-invert max-w-none pb-20">
                 <ReactQuill ref={quillRef} theme="snow" value={content} onChange={setContent} modules={modules} formats={formats} placeholder="Tell your story..." />
             </div>
