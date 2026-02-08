@@ -3,7 +3,7 @@ import { workExperiences } from "../constants";
 import { OrbitControls } from "@react-three/drei";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import CanvasLoader from "../component/CanvasLoader";
-import Me from "../component/me";
+import Me from "../component/Me";
 
 const ANIMATIONS = [
   "clapping",
