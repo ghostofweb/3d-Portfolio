@@ -9,7 +9,7 @@ import {
 import { toast } from 'react-toastify';
 
 // ✅ Accept currentUser prop
-const UserManager = ({ currentUser }) => {
+const UserManager = ({ currentUser, isDemo }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     
@@ -43,7 +43,10 @@ const UserManager = ({ currentUser }) => {
 
     const finalizeRemoval = async () => {
         if (!userToRemove) return;
-        
+            if (isDemo) { 
+             setUserToRemove(null);
+             return toast.info("Exiling members is disabled in Demo Mode.");
+        }
         try {
             const token = localStorage.getItem('accessToken');
             const response = await axios.delete(

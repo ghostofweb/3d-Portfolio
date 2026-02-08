@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
     LayoutDashboard, PenTool, Users, LogOut, Plus, 
     Loader2, Settings, UserCog, Save, X, KeyRound, 
-    ShieldCheck, Fingerprint, Sparkles, CheckCircle2 
+    ShieldCheck, Fingerprint, Sparkles, CheckCircle2, Eye 
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -12,7 +12,6 @@ import Overview from '../component/dashboard/Overview.jsx';
 import UserManager from '../component/dashboard/UserManager.jsx';
 import BlogManager from '../component/dashboard/BlogManager.jsx';
 
-// --- SHARED SIDEBAR ITEM ---
 const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
   <button 
     onClick={onClick}
@@ -43,6 +42,9 @@ const Dashboard = () => {
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  // 🛑 1. DETECT DEMO USER
+  const isDemo = user?.email === 'exploreAdmin@gmail.com';
+
   // --- DATA FETCHING ---
   const fetchAllData = useCallback(async (pageNum = 1, searchQuery = "") => {
       const token = localStorage.getItem('accessToken');
@@ -72,7 +74,7 @@ const Dashboard = () => {
       } catch (error) {
           if (error.response?.status === 401) {
               localStorage.clear();
-              navigate('/this-or-that/admin/me/admin/login');
+              navigate('/admin/login');
           } else {
               toast.error(error.response?.data?.message || "Access Denied");
           }
@@ -84,7 +86,7 @@ const Dashboard = () => {
   useEffect(() => {
     const init = async () => {
         const userData = localStorage.getItem('user');
-        if (!userData) return navigate('/this-or-that/admin/me/admin/login');
+        if (!userData) return navigate('/admin/login');
         setUser(JSON.parse(userData));
         await fetchAllData(1, "");
     };
@@ -102,7 +104,7 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.clear();
     toast.info("Logged out successfully");
-    navigate('/');
+    navigate('/admin/login');
   };
 
   const handleProfileUpdateSuccess = (updatedUser, newToken) => {
@@ -113,9 +115,25 @@ const Dashboard = () => {
       toast.success("Identity reconfigured successfully.");
   };
 
+  // 🛑 2. INTERCEPT CREATE ACTION
+  const handleCreateClick = () => {
+      if (isDemo) {
+          return toast.info("Create actions are disabled in Demo Mode.");
+      }
+      navigate('/admin/create-blog');
+  };
+
   return (
-    <div className="min-h-screen bg-[#000000] text-white flex font-sans selection:bg-white/20">
+    <div className="min-h-screen bg-[#000000] text-white flex font-sans selection:bg-white/20 relative">
       
+      {/* 🛑 3. DEMO BANNER */}
+      {isDemo && (
+          <div className="fixed top-0 left-64 right-0 z-[60] bg-indigo-600/90 backdrop-blur-sm text-white text-xs font-bold text-center py-1.5 border-b border-white/10 shadow-xl flex items-center justify-center gap-2">
+              <Eye className="w-3 h-3" />
+              <span>DEMO MODE ACTIVE: Read-only access enabled. Changes will not be saved.</span>
+          </div>
+      )}
+
       {/* SIDEBAR */}
       <aside className="w-64 border-r border-white/[0.08] flex flex-col justify-between fixed h-full bg-[#000000] z-50">
         <div className="p-4">
@@ -139,7 +157,9 @@ const Dashboard = () => {
               {user?.username?.[0]}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-zinc-300 group-hover:text-white transition-colors">{user?.name}</p>
+              <p className="text-sm font-medium truncate text-zinc-300 group-hover:text-white transition-colors">
+                  {isDemo ? "Demo User" : user?.name}
+              </p>
               <p className="text-[10px] text-zinc-500 truncate uppercase tracking-wider">{user?.position || 'Admin'}</p>
             </div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-2 bg-[#050505] shadow-[-10px_0_10px_#050505]">
@@ -151,7 +171,8 @@ const Dashboard = () => {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 ml-64 p-8 max-w-7xl mx-auto w-full">
+      {/* 🛑 Add top padding if demo banner is active so content isn't hidden */}
+      <main className={`flex-1 ml-64 p-8 max-w-7xl mx-auto w-full ${isDemo ? 'pt-14' : ''}`}>
         <header className="flex justify-between items-end mb-10 border-b border-white/[0.06] pb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white capitalize">{activeTab.replace('blogs', 'Content')}</h1>
@@ -162,7 +183,10 @@ const Dashboard = () => {
             </p>
           </div>
           {activeTab === 'blogs' && (
-             <button onClick={() => navigate('/admin/create-blog')} className="bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-200 transition-all flex items-center gap-2 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
+             <button 
+                onClick={handleCreateClick} 
+                className={`bg-white text-black px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-200 transition-all flex items-center gap-2 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] ${isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
+             >
                 <Plus className="w-4 h-4" /> Create Post
              </button>
           )}
@@ -172,22 +196,29 @@ const Dashboard = () => {
             <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-zinc-600" /></div>
         ) : (
             <>
-                {activeTab === 'overview' && <Overview blogs={blogs} users={users} currentUser={user} />}
+                {/* 🛑 4. PASS isDemo PROP TO CHILDREN */}
+                {activeTab === 'overview' && <Overview blogs={blogs} users={users} currentUser={user} isDemo={isDemo} />}
                 {activeTab === 'blogs' && (
                     <BlogManager 
                         blogs={blogs} refreshBlogs={() => fetchAllData(page, search)} 
                         currentUser={user} page={page} totalPages={totalPages}
                         onPageChange={(p) => fetchAllData(p, search)}
                         search={search} setSearch={setSearch}
+                        isDemo={isDemo}
                     />
                 )}
-                {activeTab === 'users' && <UserManager currentUser={user} />}
+                {activeTab === 'users' && <UserManager currentUser={user} isDemo={isDemo} />}
             </>
         )}
       </main>
 
       {isProfileModalOpen && (
-          <SecureEditModal user={user} onClose={() => setIsProfileModalOpen(false)} onSuccess={handleProfileUpdateSuccess} />
+          <SecureEditModal 
+            user={user} 
+            onClose={() => setIsProfileModalOpen(false)} 
+            onSuccess={handleProfileUpdateSuccess} 
+            isDemo={isDemo} // 🛑 Pass isDemo here
+          />
       )}
     </div>
   );
@@ -196,12 +227,12 @@ const Dashboard = () => {
 // ==========================================
 // SECURE PROFILE UPDATE MODAL
 // ==========================================
-const SecureEditModal = ({ user, onClose, onSuccess }) => {
+const SecureEditModal = ({ user, onClose, onSuccess, isDemo }) => {
     const [formData, setFormData] = useState({
         name: user?.name || '',
         username: user?.username || '',
         position: user?.position || '',
-        newPassword: '', // ✅ Password field is now here
+        newPassword: '', 
         otp: ''
     });
     
@@ -211,8 +242,15 @@ const SecureEditModal = ({ user, onClose, onSuccess }) => {
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    // 1. Request OTP (Uses Token to Identify User)
+    // 1. Request OTP
     const handleRequestOtp = async () => {
+        // 🛑 DEMO BLOCKER
+        if (isDemo) {
+            toast.info("Simulating OTP for Demo Mode: 123456");
+            setOtpSent(true);
+            return;
+        }
+
         setIsSendingOtp(true);
         try {
             const token = localStorage.getItem('accessToken');
@@ -230,9 +268,16 @@ const SecureEditModal = ({ user, onClose, onSuccess }) => {
         } finally { setIsSendingOtp(false); }
     };
 
-    // 2. Submit Update (Includes new password if set)
+    // 2. Submit Update
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // 🛑 DEMO BLOCKER
+        if (isDemo) {
+            toast.warning("Profile updates are disabled in Demo Mode.");
+            return;
+        }
+
         if (!otpSent) return toast.warning("Identity verification required.");
         
         setLoading(true);
@@ -261,7 +306,9 @@ const SecureEditModal = ({ user, onClose, onSuccess }) => {
                     </div>
                     <div>
                         <h3 className="text-xl font-bold text-white">Identity Metamorphosis</h3>
-                        <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Update Secure Credentials</p>
+                        <p className="text-zinc-500 text-[10px] uppercase tracking-widest">
+                            {isDemo ? "DEMO MODE (READ ONLY)" : "Update Secure Credentials"}
+                        </p>
                     </div>
                 </div>
 
@@ -339,7 +386,7 @@ const SecureEditModal = ({ user, onClose, onSuccess }) => {
                     <button 
                         type="submit" 
                         disabled={loading || !otpSent || !formData.otp} 
-                        className="w-full mt-2 bg-white text-black font-bold py-3.5 rounded-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]"
+                        className={`w-full mt-2 bg-white text-black font-bold py-3.5 rounded-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] ${isDemo ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4" />}
                         {loading ? "Verifying & Updating..." : "Confirm Changes"}

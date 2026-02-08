@@ -12,6 +12,13 @@ const ForgotPassword = () => {
 
     const handleRequestOTP = async (e) => {
         e.preventDefault();
+        
+        // 🛑 DEMO CHECK (Client Side)
+        if (data.username === 'explorer' || data.username === 'exploreAdmin@gmail.com') {
+            toast.info("Demo Admin is immutable. You cannot reset this password.");
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/forgot-password-otp`, { 
@@ -38,7 +45,7 @@ const ForgotPassword = () => {
             });
             if (res.data.success) {
                 toast.success("Security key updated. You may now enter.");
-                navigate('/login');
+                navigate('/admin/login'); // Fixed path to admin login
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Reset failed.");
@@ -51,7 +58,7 @@ const ForgotPassword = () => {
                 {/* Visual Flair */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[50px] -translate-y-1/2 translate-x-1/2" />
                 
-                <button onClick={() => navigate('/login')} className="flex items-center gap-2 text-zinc-500 hover:text-white text-sm mb-8 transition-colors group">
+                <button onClick={() => navigate('/admin/login')} className="flex items-center gap-2 text-zinc-500 hover:text-white text-sm mb-8 transition-colors group">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Login
                 </button>
 
