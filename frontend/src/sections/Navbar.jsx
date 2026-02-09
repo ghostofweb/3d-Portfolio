@@ -97,13 +97,15 @@ const Navbar = () => {
                 </a>
                )
             })}
-            <a
-              href="/resume.pdf"
-              download="Sahiljeet_Resume.pdf"
-              className="text-neutral-500 font-medium hover:text-white transition-colors"
-            >
-              Download Resume
-            </a>
+    <a
+  href="/resume.pdf"
+  download="Sahiljeet_Resume.pdf"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-neutral-300 text-sm font-medium hover:text-white transition-colors"
+>
+  Resume
+</a>
           </nav>
         </div>
       </div>
