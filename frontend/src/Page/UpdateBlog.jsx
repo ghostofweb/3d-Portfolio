@@ -60,7 +60,11 @@ const CustomToolbar = () => (
     </span>
   </div>
 );
-
+ const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent', 'link', 'image', 'code-block'
+  ];
 const UpdateBlog = () => {
   const navigate = useNavigate();
   const { slug: routeSlug } = useParams();
@@ -227,11 +231,7 @@ const UpdateBlog = () => {
     clipboard: { matchVisual: false }
   }), []);
 
-  const formats = [
-    'header', 'font', 'size',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet', 'indent', 'link', 'image', 'code-block'
-  ];
+ 
 
   const readingTime = useMemo(() => {
     const text = content.replace(/<[^>]*>/g, '');
@@ -248,7 +248,7 @@ const UpdateBlog = () => {
       <style>{`
         /* Quill Container */
         .ql-container { font-family: inherit; border: none !important; }
-        .ql-editor { padding: 0 !important; min-height: 60vh; color: #E4E4E7; line-height: 1.8; font-size: 1.125rem; }
+        .ql-editor { padding: 0 !important; min-height: 60vh; color: #E4E4E7; line-height: 1.8; font-size: 1.125rem;  overflow-y: hidden; }
         .ql-editor.ql-blank::before { color: #52525B; font-style: normal; font-size: 1.125rem; }
 
         /* Dark Mode Toolbar Icons */
@@ -423,7 +423,7 @@ const UpdateBlog = () => {
 
             {/* Editor */}
             <div className="prose prose-invert max-w-none pb-20">
-                <ReactQuill ref={quillRef} theme="snow" value={content} onChange={setContent} modules={modules} formats={formats} placeholder="Start writing..." />
+                <ReactQuill ref={quillRef} theme="snow" value={content} onChange={setContent} modules={modules} formats={formats} placeholder="Start writing..." scrollingContainer="html"/>
             </div>
         </div>
 
