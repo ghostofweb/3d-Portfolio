@@ -12,7 +12,7 @@ const connectDB = async () => {
 
     try {
         const db = await mongoose.connect(process.env.MONGODB_URI, {
-            dbName: "blog",
+            dbName: "test",
             bufferCommands: false, // Disable buffering for faster fail/success
         });
 
