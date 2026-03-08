@@ -57,6 +57,26 @@ export const navLinks = [
   ];
   
   export const myProjects = [
+      {
+  "title": "Make Video Small",
+  "desc": "Make Video Small is a desktop application designed for high efficiency video compression. It provides a clean interface for powerful tools like FFmpeg and Av1an, allowing users to dramatically reduce video file sizes while maintaining high visual quality.",
+  "subdesc": "Built with Electron, React, Node.js, and a Python based compression engine, the application supports AV1 encoding, GPU accelerated compression, batch processing, live system monitoring, and side by side preview of original and compressed videos.",
+  "href": "https://makevideosmall.vercel.app/",
+  "texture": "/textures/project/project6.mp4",
+  "logo": "/assets/project-logo6.png",
+  "logoStyle": {
+    "backgroundColor": "#0A0A0A",
+    "border": "0.2px solid #2A2A2A",
+    "boxShadow": "0px 0px 40px 0px #000000"
+  },
+  "spotlight": "/assets/spotlight5.png",
+  "tags": [
+    { "id": 1, "name": "Electron", "path": "/assets/electron.svg" },
+    { "id": 2, "name": "React.js", "path": "/assets/react.svg" },
+    { "id": 3, "name": "Node.js", "path": "/assets/nodejs.svg" },
+    { "id": 4, "name": "Python", "path": "/assets/python.svg" },
+  ]
+},
     {
       "title": "ImageAI - AI-Powered Image Editing Platform",
       "desc": "ImageAI is a next-gen platform offering advanced image editing capabilities using cutting-edge AI technology, providing tools for generation, restoration, background removal, and more.",
@@ -151,10 +171,7 @@ export const navLinks = [
       { "id": 2, "name": "Node.js", "path": "/assets/nodejs.svg" },
       { "id": 3, "name": "TailwindCSS", "path": "/assets/tailwindcss.png" },
     ]
-  }
-
-  
-  
+  },
 ];
 
   
