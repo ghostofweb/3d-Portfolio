@@ -1,4 +1,10 @@
-export default function DogIcon({ className }: { className?: string }) {
+export default function DogIcon({
+  className,
+  animated = false,
+}: {
+  className?: string;
+  animated?: boolean;
+}) {
   return (
     <svg
       viewBox="0 0 64 60"
@@ -6,6 +12,11 @@ export default function DogIcon({ className }: { className?: string }) {
       shapeRendering="geometricPrecision"
       aria-hidden="true"
     >
+      {/* tail */}
+      <g style={{ transformOrigin: "50px 38px" }} className={animated ? "mascot-tail" : undefined}>
+        <rect x="48" y="34" width="10" height="5" rx="2.5" fill="#c97a25" />
+      </g>
+
       {/* laptop */}
       <rect x="14" y="42" width="36" height="4" rx="1" fill="#8a8f98" />
       <rect x="18" y="30" width="28" height="14" rx="2" fill="#9aa0aa" />
@@ -15,8 +26,12 @@ export default function DogIcon({ className }: { className?: string }) {
       <rect x="16" y="26" width="32" height="18" rx="9" fill="#e2963c" />
 
       {/* ears */}
-      <path d="M12 10 L22 22 L14 26 Z" fill="#c97a25" />
-      <path d="M52 10 L42 22 L50 26 Z" fill="#c97a25" />
+      <g style={{ transformOrigin: "17px 14px" }} className={animated ? "mascot-ear-left" : undefined}>
+        <path d="M12 10 L22 22 L14 26 Z" fill="#c97a25" />
+      </g>
+      <g style={{ transformOrigin: "47px 14px" }} className={animated ? "mascot-ear-right" : undefined}>
+        <path d="M52 10 L42 22 L50 26 Z" fill="#c97a25" />
+      </g>
 
       {/* head */}
       <circle cx="32" cy="24" r="16" fill="#e2963c" />

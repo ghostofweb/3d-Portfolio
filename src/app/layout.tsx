@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Fraunces } from "next/font/google";
+import { Geist, Geist_Mono, Roboto_Slab } from "next/font/google";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import Mascot from "@/components/mascot/Mascot";
@@ -16,10 +16,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const serif = Fraunces({
+const serif = Roboto_Slab({
   variable: "--font-serif",
-  weight: ["400", "500", "600"],
-  style: ["normal"],
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
 

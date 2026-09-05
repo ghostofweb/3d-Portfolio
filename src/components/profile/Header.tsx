@@ -1,5 +1,6 @@
 import { site } from "@/content/site";
 import DogIcon from "@/components/mascot/DogIcon";
+import StatsTicker from "./StatsTicker";
 
 export default function Header() {
   return (
@@ -10,7 +11,7 @@ export default function Header() {
 
       <div>
         <p className="text-sm text-text-muted">Hello, I&apos;m</p>
-        <h1 className="mt-1 font-serif text-4xl font-medium tracking-tight text-text sm:text-5xl">
+        <h1 className="mt-1 font-serif text-4xl font-semibold tracking-tight text-text sm:text-5xl">
           {site.name}
         </h1>
         <p className="mt-2 text-base font-medium text-accent">{site.role}</p>
@@ -19,6 +20,16 @@ export default function Header() {
       <p className="max-w-xl text-base leading-relaxed text-text-muted">
         {site.tagline} {site.bio}
       </p>
+
+      <StatsTicker />
+
+      <div className="flex items-center gap-2 text-sm text-text-muted">
+        <span className="h-2 w-2 rounded-full bg-accent" />
+        <span>
+          <span className="text-text">Currently:</span> {site.currentRoles}
+        </span>
+      </div>
+
       <p className="max-w-xl text-sm leading-relaxed text-text-muted">
         {site.openTo}
       </p>
