@@ -51,7 +51,7 @@ export default function SectionNav() {
   }, []);
 
   return (
-    <nav className="flex flex-col gap-2.5">
+    <nav className="flex flex-row flex-wrap gap-x-4 gap-y-2 md:flex-col md:flex-nowrap md:gap-2.5">
       {sections.map((section) => (
         <a
           key={section.id}

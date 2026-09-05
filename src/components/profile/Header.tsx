@@ -3,7 +3,7 @@ import StatsTicker from "./StatsTicker";
 
 export default function Header() {
   return (
-    <header id="intro" className="flex scroll-mt-10 flex-col items-start gap-5 pt-6">
+    <header id="intro" className="flex scroll-mt-10 flex-col items-start gap-5 pt-6 md:pt-10">
       <div>
         <p className="text-sm text-text-muted">Hello, I&apos;m</p>
         <h1 className="mt-1 font-serif text-4xl font-semibold tracking-tight text-text sm:text-5xl">

@@ -13,5 +13,6 @@ export const site = {
   socials: {
     github: "https://github.com/ghostofweb",
     linkedin: "https://www.linkedin.com/in/sahiljeet-singh-kalsi-085844244/",
+    cal: "https://cal.com/syntaxpath",
   },
 };

@@ -27,7 +27,11 @@ const MAX_SWING = 55;
 export default function Mascot() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [tailAngle, setTailAngle] = useState(REST_ANGLE);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
   const [reacting, setReacting] = useState(false);
   const [bubble, setBubble] = useState<{ text: string; visible: boolean }>({
     text: "",
@@ -50,16 +54,13 @@ export default function Mascot() {
   };
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-
     const ambientInterval = setInterval(() => {
       if (bubbleSourceRef.current === "click") return;
       const line = AMBIENT_LINES[Math.floor(Math.random() * AMBIENT_LINES.length)];
       showBubble(line, "ambient", 3000);
     }, AMBIENT_INTERVAL);
 
-    if (mq.matches) {
+    if (reducedMotion) {
       return () => clearInterval(ambientInterval);
     }
 
@@ -90,7 +91,7 @@ export default function Mascot() {
       if (reactTimeoutRef.current) clearTimeout(reactTimeoutRef.current);
       if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
     };
-  }, []);
+  }, [reducedMotion]);
 
   const handleClick = () => {
     const line = CLICK_LINES[Math.floor(Math.random() * CLICK_LINES.length)];
