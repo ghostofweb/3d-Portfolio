@@ -1,9 +1,9 @@
 export interface Experience {
   id: number;
-  name: string;
-  pos: string;
+  company: string;
+  companyHref?: string;
+  role: string;
   duration: string;
   summary: string;
   points: string[];
-  icon: string;
 }

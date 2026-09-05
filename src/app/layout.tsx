@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import ThemeProvider from "@/components/theme/ThemeProvider";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import Mascot from "@/components/mascot/Mascot";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -12,6 +13,13 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const serif = Instrument_Serif({
+  variable: "--font-serif",
+  weight: "400",
+  style: ["normal", "italic"],
   subsets: ["latin"],
 });
 
@@ -40,12 +48,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${serif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-bg text-text">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+      <body className="min-h-full bg-bg text-text">
+        <ThemeProvider
+          attribute="data-theme"
+          defaultTheme="light"
+          enableSystem={false}
+        >
+          <ThemeToggle />
+          {children}
+          <Mascot />
+        </ThemeProvider>
       </body>
     </html>
   );

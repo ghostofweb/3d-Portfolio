@@ -1,8 +1,13 @@
 export const site = {
   name: "Sahiljeet Singh Kalsi",
-  role: "Full-Stack Developer",
-  tagline: "I build fast, reliable web products end to end.",
-  bio: "Full-stack developer who cares about performance, clean architecture, and shipping things that actually work in production. I like solving hard backend problems as much as I like getting the details of an interface right. Based in India, working remotely across timezones.",
+  role: "Backend-focused Software Engineer",
+  tagline:
+    "Software engineer working on backend systems and infrastructure for production-scale applications.",
+  bio: "Primarily working with Node.js, TypeScript, NestJS, PostgreSQL, Redis, and AWS to build scalable APIs, distributed services, and real-time systems. I work on performance optimization, database-heavy workloads, infrastructure reliability, and backend architecture improvements across multiple microservices. Recently worked on reducing backend CPU utilization from ~99% to ~25%, rebuilding a large FFmpeg-based transcoding pipeline, and migrating services from GCP to AWS. I enjoy understanding system bottlenecks, improving performance under load, and building backend systems that remain reliable at scale.",
+  currentRoles:
+    "Senior Full-Stack Developer at Synappses and Software Developer at Newral (parent company) — building scalable backend systems, infrastructure, and distributed services for production applications serving 100,000+ concurrent users.",
+  openTo:
+    "Open to backend-focused software engineering opportunities involving distributed systems, infrastructure, and scalable application development.",
   email: "sahiljeetsinghkalsi@gmail.com",
   resumeUrl: "/resume.pdf",
   socials: {
@@ -10,26 +15,3 @@ export const site = {
     linkedin: "https://www.linkedin.com/in/sahiljeet-singh-kalsi-085844244/",
   },
 };
-
-export const navLinks = [
-  { name: "Home", href: "#home" },
-  { name: "About", href: "#about" },
-  { name: "Work", href: "#work" },
-  { name: "Blog", href: "/blog" },
-  { name: "Contact", href: "#contact" },
-];
-
-export const skills = [
-  { name: "TypeScript", icon: "/assets/typescript.png" },
-  { name: "React.js", icon: "/assets/react.svg" },
-  { name: "Next.js", icon: "/assets/nextjs.png" },
-  { name: "Node.js", icon: "/assets/nodejs.svg" },
-  { name: "MongoDB", icon: "/assets/mongodb.svg" },
-  { name: "TailwindCSS", icon: "/assets/tailwindcss.png" },
-  { name: "Firebase", icon: "/assets/firebase.png" },
-  { name: "Electron", icon: "/assets/electron.svg" },
-  { name: "Python", icon: "/assets/python.svg" },
-  { name: "Framer Motion", icon: "/assets/framer.png" },
-  { name: "Cloudinary", icon: "/assets/cloudinary.png" },
-  { name: "Clerk", icon: "/assets/clerk.png" },
-];

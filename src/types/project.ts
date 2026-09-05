@@ -7,7 +7,6 @@ export interface ProjectTag {
 export interface Project {
   title: string;
   desc: string;
-  subdesc: string;
   href: string;
   logo: string;
   tags: ProjectTag[];
