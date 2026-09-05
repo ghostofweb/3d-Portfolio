@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #fafaf9;
-  --bg-elevated: #f2f2f0;
-  --border: #e5e5e3;
-  --text: #111111;
-  --text-muted: #6b6b6b;
-  --accent: #2563eb;
-  --accent-soft: #2563eb14;
+  --bg: #faf9f5;
+  --bg-elevated: #f4f3ee;
+  --border: #e8e6de;
+  --text: #1f1e1d;
+  --text-muted: #6b6a63;
+  --accent: #d97757;
+  --accent-soft: #d9775714;
 }
 
 :root[data-theme="dark"] {
-  --bg: #0a0a0b;
-  --bg-elevated: #121214;
-  --border: #232326;
-  --text: #f2f2f3;
-  --text-muted: #9a9aa2;
-  --accent: #5b8bf7;
-  --accent-soft: #5b8bf71f;
+  --bg: #1f1e1d;
+  --bg-elevated: #2a2924;
+  --border: #3a3934;
+  --text: #f5f4ef;
+  --text-muted: #a6a499;
+  --accent: #e08a66;
+  --accent-soft: #e08a661f;
 }
 
 @theme inline {
@@ -50,10 +50,20 @@ a {
 @keyframes mascot-bob {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) rotate(0deg);
   }
   50% {
-    transform: translateY(-4px);
+    transform: translateY(-4px) rotate(0deg);
+  }
+}
+
+@keyframes mascot-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(4deg);
   }
 }
 

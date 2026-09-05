@@ -2,11 +2,14 @@ import { experiences } from "@/content/experience";
 
 export default function ExperienceSection() {
   return (
-    <section className="mt-16">
-      <h2 className="font-serif text-xl italic text-text-muted">Experience</h2>
-      <div className="mt-4 flex flex-col divide-y divide-border">
+    <section className="mt-14">
+      <h2 className="font-serif text-2xl font-medium text-text">Experience</h2>
+      <div className="mt-5 flex flex-col gap-4">
         {experiences.map((exp) => (
-          <div key={exp.id} className="py-5 first:pt-0">
+          <div
+            key={exp.id}
+            className="rounded-2xl border border-border bg-bg-elevated p-6"
+          >
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <p className="text-sm font-semibold text-text">
                 {exp.role} ·{" "}
@@ -15,7 +18,7 @@ export default function ExperienceSection() {
                     href={exp.companyHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="underline decoration-border underline-offset-2 hover:text-accent hover:decoration-accent"
+                    className="text-accent hover:underline"
                   >
                     {exp.company}
                   </a>
@@ -23,18 +26,20 @@ export default function ExperienceSection() {
                   exp.company
                 )}
               </p>
-              <span className="text-xs text-text-muted">{exp.duration}</span>
+              <span className="rounded-full border border-border px-2.5 py-0.5 text-xs text-text-muted">
+                {exp.duration}
+              </span>
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-text-muted">
+            <p className="mt-3 text-sm leading-relaxed text-text-muted">
               {exp.summary}
             </p>
-            <ul className="mt-2 flex flex-col gap-1">
+            <ul className="mt-3 flex flex-col gap-1.5">
               {exp.points.map((point) => (
                 <li
                   key={point}
                   className="flex gap-2 text-sm leading-relaxed text-text-muted"
                 >
-                  <span className="text-accent">–</span>
+                  <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-accent" />
                   {point}
                 </li>
               ))}

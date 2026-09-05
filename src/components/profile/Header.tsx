@@ -3,21 +3,23 @@ import DogIcon from "@/components/mascot/DogIcon";
 
 export default function Header() {
   return (
-    <header className="pt-16 sm:pt-24">
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="font-serif text-2xl italic text-text-muted">im</span>
-        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-bg-elevated">
-          <DogIcon className="h-6 w-6" />
-        </span>
-        <h1 className="text-2xl font-bold tracking-tight text-text underline decoration-accent decoration-2 underline-offset-4 sm:text-3xl">
+    <header className="flex flex-col items-start gap-5 pt-20 sm:pt-28">
+      <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-bg-elevated">
+        <DogIcon className="h-9 w-9" />
+      </span>
+
+      <div>
+        <p className="text-sm text-text-muted">Hello, I&apos;m</p>
+        <h1 className="mt-1 font-serif text-4xl font-medium tracking-tight text-text sm:text-5xl">
           {site.name}
         </h1>
+        <p className="mt-2 text-base font-medium text-accent">{site.role}</p>
       </div>
 
-      <p className="mt-5 max-w-xl text-base leading-relaxed text-text-muted">
+      <p className="max-w-xl text-base leading-relaxed text-text-muted">
         {site.tagline} {site.bio}
       </p>
-      <p className="mt-4 max-w-xl text-sm leading-relaxed text-text-muted">
+      <p className="max-w-xl text-sm leading-relaxed text-text-muted">
         {site.openTo}
       </p>
     </header>
