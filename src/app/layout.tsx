@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Roboto_Slab } from "next/font/google";
+import { Geist, IBM_Plex_Mono } from "next/font/google";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { site } from "@/content/site";
@@ -10,12 +10,7 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const serif = Roboto_Slab({
+const display = IBM_Plex_Mono({
   variable: "--font-serif",
   weight: ["500", "600", "700"],
   subsets: ["latin"],
@@ -47,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${serif.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${display.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-bg text-text">
         <ThemeProvider
