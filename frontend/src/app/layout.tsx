@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, IBM_Plex_Mono } from "next/font/google";
+import { ToastContainer } from "react-toastify";
 import ThemeProvider from "@/components/theme/ThemeProvider";
-import ThemeToggle from "@/components/theme/ThemeToggle";
 import { site } from "@/content/site";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${display.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-bg text-text">
@@ -50,8 +52,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           defaultTheme="light"
           enableSystem={false}
         >
-          <ThemeToggle />
           {children}
+          <ToastContainer position="bottom-right" theme="dark" />
         </ThemeProvider>
       </body>
     </html>

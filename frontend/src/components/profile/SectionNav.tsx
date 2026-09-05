@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 const sections = [
@@ -65,6 +66,12 @@ export default function SectionNav() {
           {section.label}
         </a>
       ))}
+      <Link
+        href="/blog"
+        className="text-sm text-text-muted transition-colors hover:text-text"
+      >
+        Blog
+      </Link>
     </nav>
   );
 }
