@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto_Slab } from "next/font/google";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import ThemeToggle from "@/components/theme/ThemeToggle";
-import Mascot from "@/components/mascot/Mascot";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -58,7 +57,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           <ThemeToggle />
           {children}
-          <Mascot />
         </ThemeProvider>
       </body>
     </html>

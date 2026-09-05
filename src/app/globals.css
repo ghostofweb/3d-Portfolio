@@ -33,6 +33,10 @@
   --font-serif: var(--font-serif);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -55,16 +59,6 @@ a {
   }
   50% {
     transform: translateY(-4px) rotate(0deg);
-  }
-}
-
-@keyframes mascot-walk {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-4deg);
-  }
-  50% {
-    transform: translateY(-6px) rotate(4deg);
   }
 }
 

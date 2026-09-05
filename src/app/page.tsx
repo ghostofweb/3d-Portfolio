@@ -1,5 +1,5 @@
+import Sidebar from "@/components/profile/Sidebar";
 import Header from "@/components/profile/Header";
-import LinkRow from "@/components/profile/LinkRow";
 import ExperienceSection from "@/components/profile/ExperienceSection";
 import ProjectsSection from "@/components/profile/ProjectsSection";
 import SkillsSection from "@/components/profile/SkillsSection";
@@ -7,13 +7,15 @@ import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   return (
-    <div className="mx-auto max-w-2xl px-6 pb-24">
-      <Header />
-      <LinkRow />
-      <ExperienceSection />
-      <ProjectsSection />
-      <SkillsSection />
-      <Footer />
+    <div className="mx-auto flex max-w-4xl flex-col gap-10 px-6 pb-24 md:flex-row">
+      <Sidebar />
+      <main className="min-w-0 flex-1">
+        <Header />
+        <ExperienceSection />
+        <ProjectsSection />
+        <SkillsSection />
+        <Footer />
+      </main>
     </div>
   );
 }

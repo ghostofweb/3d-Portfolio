@@ -16,28 +16,27 @@ const AMBIENT_LINES = [
   "still compiling...",
   "optimizing something",
   "reviewing a PR",
-  "grabbing coffee ☕",
   "watching the logs",
   "99% CPU... jk, 25%",
 ];
 
-const AMBIENT_INTERVAL = 26000;
-const WALK_IDLE_DELAY = 450;
+const AMBIENT_INTERVAL = 32000;
+const REST_ANGLE = 10;
+const MAX_SWING = 55;
 
 export default function Mascot() {
-  const [left, setLeft] = useState(24);
-  const [facing, setFacing] = useState<1 | -1>(1);
-  const [walking, setWalking] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [tailAngle, setTailAngle] = useState(REST_ANGLE);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [reacting, setReacting] = useState(false);
   const [bubble, setBubble] = useState<{ text: string; visible: boolean }>({
     text: "",
     visible: false,
   });
 
-  const leftRef = useRef(24);
   const bubbleSourceRef = useRef<"click" | "ambient" | null>(null);
-  const walkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bubbleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reactTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tickingRef = useRef(false);
 
   const showBubble = (text: string, source: "click" | "ambient", duration: number) => {
@@ -53,44 +52,42 @@ export default function Mascot() {
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReducedMotion(mq.matches);
-    if (mq.matches) return;
-
-    const handleScroll = () => {
-      if (tickingRef.current) return;
-      tickingRef.current = true;
-
-      requestAnimationFrame(() => {
-        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
-        const maxLeft = Math.max(24, window.innerWidth - 96);
-        const newLeft = 24 + progress * (maxLeft - 24);
-
-        if (Math.abs(newLeft - leftRef.current) > 0.5) {
-          setFacing(newLeft < leftRef.current ? -1 : 1);
-          leftRef.current = newLeft;
-          setLeft(newLeft);
-          setWalking(true);
-
-          if (walkTimeoutRef.current) clearTimeout(walkTimeoutRef.current);
-          walkTimeoutRef.current = setTimeout(() => setWalking(false), WALK_IDLE_DELAY);
-        }
-
-        tickingRef.current = false;
-      });
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
 
     const ambientInterval = setInterval(() => {
       if (bubbleSourceRef.current === "click") return;
       const line = AMBIENT_LINES[Math.floor(Math.random() * AMBIENT_LINES.length)];
-      showBubble(line, "ambient", 3200);
+      showBubble(line, "ambient", 3000);
     }, AMBIENT_INTERVAL);
 
+    if (mq.matches) {
+      return () => clearInterval(ambientInterval);
+    }
+
+    const handlePointerMove = (e: MouseEvent) => {
+      if (tickingRef.current || !wrapperRef.current) return;
+      tickingRef.current = true;
+
+      requestAnimationFrame(() => {
+        const rect = wrapperRef.current!.getBoundingClientRect();
+        const originX = rect.left + rect.width * 0.75;
+        const originY = rect.top + rect.height * 0.6;
+
+        const dx = e.clientX - originX;
+        const dy = e.clientY - originY;
+        const rawAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const swing = Math.max(-MAX_SWING, Math.min(MAX_SWING, rawAngle));
+
+        setTailAngle(swing);
+        tickingRef.current = false;
+      });
+    };
+
+    window.addEventListener("mousemove", handlePointerMove);
+
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousemove", handlePointerMove);
       clearInterval(ambientInterval);
-      if (walkTimeoutRef.current) clearTimeout(walkTimeoutRef.current);
+      if (reactTimeoutRef.current) clearTimeout(reactTimeoutRef.current);
       if (bubbleTimeoutRef.current) clearTimeout(bubbleTimeoutRef.current);
     };
   }, []);
@@ -98,17 +95,15 @@ export default function Mascot() {
   const handleClick = () => {
     const line = CLICK_LINES[Math.floor(Math.random() * CLICK_LINES.length)];
     showBubble(line, "click", 1600);
+    setReacting(true);
+    if (reactTimeoutRef.current) clearTimeout(reactTimeoutRef.current);
+    reactTimeoutRef.current = setTimeout(() => setReacting(false), 500);
   };
 
-  const isClickReacting = bubble.visible && bubbleSourceRef.current === "click";
-
   return (
-    <div
-      className="fixed bottom-4 z-40 transition-[left] duration-150 ease-out"
-      style={{ left }}
-    >
+    <div ref={wrapperRef} className="relative inline-block">
       {bubble.visible && (
-        <div className="absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-border bg-bg px-3 py-1 text-xs text-text shadow-sm">
+        <div className="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-border bg-bg px-3 py-1 text-xs text-text shadow-sm">
           {bubble.text}
         </div>
       )}
@@ -116,22 +111,19 @@ export default function Mascot() {
         type="button"
         aria-label="Say hi to the dog"
         onClick={handleClick}
-        style={{ transform: `scaleX(${facing})` }}
-        className="block h-16 w-16 cursor-pointer"
+        className={`block h-16 w-16 cursor-pointer transition-transform duration-300 ${
+          reacting
+            ? "-translate-y-2"
+            : !reducedMotion
+              ? "animate-[mascot-bob_3.2s_ease-in-out_infinite]"
+              : ""
+        }`}
       >
-        <span
-          className={`block h-full w-full transition-transform duration-300 ${
-            isClickReacting
-              ? "-translate-y-3"
-              : !reducedMotion && walking
-                ? "animate-[mascot-walk_0.5s_ease-in-out_infinite]"
-                : !reducedMotion
-                  ? "animate-[mascot-bob_2.4s_ease-in-out_infinite]"
-                  : ""
-          }`}
-        >
-          <DogIcon className="h-full w-full drop-shadow-md" animated={!reducedMotion} />
-        </span>
+        <DogIcon
+          className="h-full w-full"
+          animated={!reducedMotion}
+          tailAngle={reducedMotion ? undefined : tailAngle}
+        />
       </button>
     </div>
   );

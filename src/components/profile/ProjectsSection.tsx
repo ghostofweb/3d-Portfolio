@@ -3,7 +3,7 @@ import { ownProjects } from "@/content/projects";
 
 export default function ProjectsSection() {
   return (
-    <section className="mt-16">
+    <section id="projects" className="mt-16 scroll-mt-10">
       <h2 className="font-serif text-2xl font-semibold text-text">
         Own projects
       </h2>

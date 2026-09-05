@@ -3,7 +3,7 @@ import Pill from "@/components/ui/Pill";
 
 export default function SkillsSection() {
   return (
-    <section className="mt-16">
+    <section id="skills" className="mt-16 scroll-mt-10">
       <h2 className="font-serif text-2xl font-semibold text-text">Skills</h2>
       <div className="mt-6 flex flex-col gap-5">
         {skillGroups.map((group) => (

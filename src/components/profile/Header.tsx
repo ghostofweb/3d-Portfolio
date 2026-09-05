@@ -1,14 +1,9 @@
 import { site } from "@/content/site";
-import DogIcon from "@/components/mascot/DogIcon";
 import StatsTicker from "./StatsTicker";
 
 export default function Header() {
   return (
-    <header className="flex flex-col items-start gap-5 pt-20 sm:pt-28">
-      <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-bg-elevated">
-        <DogIcon className="h-9 w-9" />
-      </span>
-
+    <header id="intro" className="flex scroll-mt-10 flex-col items-start gap-5 pt-6">
       <div>
         <p className="text-sm text-text-muted">Hello, I&apos;m</p>
         <h1 className="mt-1 font-serif text-4xl font-semibold tracking-tight text-text sm:text-5xl">

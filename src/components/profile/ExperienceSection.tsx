@@ -36,7 +36,7 @@ export default function ExperienceSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="mt-16">
+    <section id="experience" ref={sectionRef} className="mt-16 scroll-mt-10">
       <h2 className="font-serif text-2xl font-semibold text-text">
         Experience
       </h2>

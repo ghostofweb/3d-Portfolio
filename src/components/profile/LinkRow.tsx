@@ -9,14 +9,14 @@ const links = [
 
 export default function LinkRow() {
   return (
-    <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+    <div className="flex flex-col gap-2">
       {links.map((link) => (
         <a
           key={link.label}
           href={link.href}
           target={link.href.startsWith("mailto:") ? undefined : "_blank"}
           rel="noreferrer"
-          className="font-medium text-text underline decoration-border decoration-1 underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+          className="text-sm text-text-muted transition-colors hover:text-accent"
         >
           {link.label}
         </a>

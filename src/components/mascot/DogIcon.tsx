@@ -1,10 +1,21 @@
 export default function DogIcon({
   className,
   animated = false,
+  tailAngle,
 }: {
   className?: string;
   animated?: boolean;
+  tailAngle?: number;
 }) {
+  const tailStyle =
+    tailAngle !== undefined
+      ? {
+          transformOrigin: "48px 37px",
+          transform: `rotate(${tailAngle}deg)`,
+          transition: "transform 0.15s ease-out",
+        }
+      : { transformOrigin: "48px 37px" };
+
   return (
     <svg
       viewBox="0 0 64 60"
@@ -13,8 +24,11 @@ export default function DogIcon({
       aria-hidden="true"
     >
       {/* tail */}
-      <g style={{ transformOrigin: "50px 38px" }} className={animated ? "mascot-tail" : undefined}>
-        <rect x="48" y="34" width="10" height="5" rx="2.5" fill="#c97a25" />
+      <g
+        style={tailStyle}
+        className={tailAngle === undefined && animated ? "mascot-tail" : undefined}
+      >
+        <rect x="47" y="35" width="17" height="4.5" rx="2.2" fill="#c97a25" />
       </g>
 
       {/* laptop */}

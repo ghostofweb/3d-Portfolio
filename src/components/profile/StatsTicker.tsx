@@ -38,7 +38,7 @@ export default function StatsTicker() {
   }, []);
 
   return (
-    <div className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
+    <div className="mt-8 grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
       {stats.map((stat, i) => (
         <div key={stat.label}>
           <span
