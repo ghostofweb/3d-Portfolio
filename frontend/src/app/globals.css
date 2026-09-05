@@ -96,6 +96,113 @@ a {
   animation-delay: 0.25s;
 }
 
+@keyframes tail-wag-happy {
+  0%,
+  100% {
+    transform: rotate(-30deg);
+  }
+  50% {
+    transform: rotate(30deg);
+  }
+}
+
+.mascot-tail-happy {
+  animation: tail-wag-happy 0.22s ease-in-out infinite;
+}
+
+@keyframes head-tilt {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+.mascot-head-tilt {
+  animation: head-tilt 7s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  97% {
+    transform: scaleY(0.1);
+  }
+}
+
+.mascot-blink {
+  animation: blink 4.5s ease-in-out infinite;
+}
+
+@keyframes paw-wave {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(-35deg) translateY(-6px);
+  }
+  50% {
+    transform: rotate(-10deg) translateY(-4px);
+  }
+  75% {
+    transform: rotate(-35deg) translateY(-6px);
+  }
+}
+
+.mascot-paw-wave {
+  animation: paw-wave 0.5s ease-in-out 2;
+}
+
+@keyframes mascot-pop {
+  0% {
+    transform: scale(1) translateY(0);
+  }
+  30% {
+    transform: scale(1.15, 0.85) translateY(4px);
+  }
+  55% {
+    transform: scale(0.92, 1.1) translateY(-10px);
+  }
+  75% {
+    transform: scale(1.05, 0.97) translateY(-2px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+.mascot-pop {
+  animation: mascot-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes heart-float {
+  0% {
+    transform: translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1);
+  }
+  100% {
+    transform: translateY(-42px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.mascot-heart {
+  animation: heart-float 1.1s ease-out forwards;
+}
+
 .blog-content {
   font-size: 1rem;
   line-height: 1.75;
@@ -155,6 +262,12 @@ a {
 .blog-content img {
   border-radius: 0.75rem;
   border: 1px solid var(--border);
+  cursor: zoom-in;
+  transition: opacity 0.15s ease;
+}
+
+.blog-content img:hover {
+  opacity: 0.92;
 }
 
 .blog-content pre {

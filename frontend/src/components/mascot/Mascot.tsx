@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import DogIcon from "./DogIcon";
+import { API_URL } from "@/lib/api";
+import { getVisitorId } from "@/lib/visitor";
 
 const CLICK_LINES = [
   "woof! 🐾",
@@ -23,6 +25,12 @@ const AMBIENT_LINES = [
 const AMBIENT_INTERVAL = 32000;
 const REST_ANGLE = 10;
 const MAX_SWING = 55;
+const REACT_DURATION = 1100;
+
+interface Heart {
+  id: number;
+  x: number;
+}
 
 export default function Mascot() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -33,6 +41,13 @@ export default function Mascot() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
   const [reacting, setReacting] = useState(false);
+  const [hearts, setHearts] = useState<Heart[]>([]);
+  const [patCount, setPatCount] = useState<number | null>(null);
+  const [hasPatted, setHasPatted] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      localStorage.getItem(`patted:${getVisitorId()}`) === "1",
+  );
   const [bubble, setBubble] = useState<{ text: string; visible: boolean }>({
     text: "",
     visible: false,
@@ -42,6 +57,7 @@ export default function Mascot() {
   const bubbleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reactTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tickingRef = useRef(false);
+  const heartIdRef = useRef(0);
 
   const showBubble = (text: string, source: "click" | "ambient", duration: number) => {
     bubbleSourceRef.current = source;
@@ -52,6 +68,16 @@ export default function Mascot() {
       setBubble((b) => ({ ...b, visible: false }));
     }, duration);
   };
+
+  // Load the current pat count once on mount (fails silently if the backend is unreachable)
+  useEffect(() => {
+    fetch(`${API_URL}/api/mascot/pats`, { signal: AbortSignal.timeout(5000) })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.success) setPatCount(json.data.count);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const ambientInterval = setInterval(() => {
@@ -93,12 +119,47 @@ export default function Mascot() {
     };
   }, [reducedMotion]);
 
+  const spawnHearts = () => {
+    const newHearts = Array.from({ length: 3 }, () => ({
+      id: heartIdRef.current++,
+      x: -14 + Math.random() * 28,
+    }));
+    setHearts((h) => [...h, ...newHearts]);
+    setTimeout(() => {
+      setHearts((h) => h.filter((heart) => !newHearts.includes(heart)));
+    }, 1200);
+  };
+
+  const recordPat = async () => {
+    try {
+      const visitorId = getVisitorId();
+      const res = await fetch(`${API_URL}/api/mascot/pat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visitorId }),
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json?.success) {
+        setPatCount(json.data.count);
+        localStorage.setItem(`patted:${visitorId}`, "1");
+        setHasPatted(true);
+      }
+    } catch {
+      // offline/unreachable backend — the local reaction still plays, count just won't update
+    }
+  };
+
   const handleClick = () => {
     const line = CLICK_LINES[Math.floor(Math.random() * CLICK_LINES.length)];
     showBubble(line, "click", 1600);
     setReacting(true);
+    if (!reducedMotion) spawnHearts();
+    void recordPat();
+
     if (reactTimeoutRef.current) clearTimeout(reactTimeoutRef.current);
-    reactTimeoutRef.current = setTimeout(() => setReacting(false), 500);
+    reactTimeoutRef.current = setTimeout(() => setReacting(false), REACT_DURATION);
   };
 
   return (
@@ -108,24 +169,43 @@ export default function Mascot() {
           {bubble.text}
         </div>
       )}
+
+      {hearts.map((heart) => (
+        <span
+          key={heart.id}
+          className="mascot-heart pointer-events-none absolute left-1/2 top-2 z-10 text-sm"
+          style={{ marginLeft: heart.x }}
+        >
+          💛
+        </span>
+      ))}
+
       <button
         type="button"
-        aria-label="Say hi to the dog"
+        aria-label="Pat the dog"
         onClick={handleClick}
-        className={`block h-16 w-16 cursor-pointer transition-transform duration-300 ${
-          reacting
-            ? "-translate-y-2"
-            : !reducedMotion
-              ? "animate-[mascot-bob_3.2s_ease-in-out_infinite]"
-              : ""
-        }`}
+        className={`block h-16 w-16 cursor-pointer ${reacting ? "mascot-pop" : ""}`}
       >
-        <DogIcon
-          className="h-full w-full"
-          animated={!reducedMotion}
-          tailAngle={reducedMotion ? undefined : tailAngle}
-        />
+        <span
+          className={`block h-full w-full ${
+            !reacting && !reducedMotion ? "animate-[mascot-bob_3.2s_ease-in-out_infinite]" : ""
+          }`}
+        >
+          <DogIcon
+            className="h-full w-full drop-shadow-sm"
+            animated={!reducedMotion}
+            tailAngle={reducedMotion ? undefined : tailAngle}
+            reacting={reacting}
+          />
+        </span>
       </button>
+
+      {patCount !== null && (
+        <p className="mt-2 text-center text-[11px] text-text-muted">
+          🐾 {patCount.toLocaleString()} pat{patCount === 1 ? "" : "s"}
+          {hasPatted && <span className="text-accent"> · you patted!</span>}
+        </p>
+      )}
     </div>
   );
 }

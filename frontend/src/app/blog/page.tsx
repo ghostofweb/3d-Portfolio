@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { API_URL } from "@/lib/api";
 import { site } from "@/content/site";
+import { toHttps, excerptOf } from "@/lib/blog";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -27,11 +28,6 @@ interface BlogsResponse {
     currentPage: number;
     totalPosts: number;
   };
-}
-
-function excerptOf(html: string, length = 160) {
-  const text = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  return text.length > length ? `${text.slice(0, length)}…` : text;
 }
 
 async function getBlogs(page: number): Promise<BlogsResponse["data"] | null> {
@@ -66,10 +62,10 @@ export default async function BlogPage({
         ← Back
       </Link>
 
-      <h1 className="mt-6 font-serif text-3xl font-semibold text-text sm:text-4xl">
+      <h1 className="mt-6 font-serif text-4xl font-semibold text-text sm:text-5xl">
         Blog
       </h1>
-      <p className="mt-3 max-w-xl text-base leading-relaxed text-text-muted">
+      <p className="mt-3 max-w-xl text-base leading-relaxed text-text">
         Notes on backend systems, infrastructure, and things I&apos;m building.
       </p>
 
@@ -86,42 +82,55 @@ export default async function BlogPage({
       )}
 
       {data && data.blogs.length > 0 && (
-        <div className="mt-10 flex flex-col divide-y divide-border">
-          {data.blogs.map((blog) => (
-            <Link
-              key={blog._id}
-              href={`/blog/${blog.slug}`}
-              className="group flex flex-col gap-2 py-6 first:pt-0"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h2 className="text-base font-semibold text-text group-hover:text-accent">
-                  {blog.title}
-                </h2>
-                <span className="text-xs text-text-muted">
-                  {new Date(blog.createdAt).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
-              <p className="text-sm leading-relaxed text-text-muted">
-                {excerptOf(blog.content)}
-              </p>
-              {blog.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {blog.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-border bg-bg-elevated px-2.5 py-0.5 text-xs text-text-muted"
-                    >
-                      {tag}
+        <div className="mt-10 flex flex-col gap-4">
+          {data.blogs.map((blog) => {
+            const cover = toHttps(blog.coverImage);
+            return (
+              <Link
+                key={blog._id}
+                href={`/blog/${blog.slug}`}
+                className="group flex gap-4 rounded-xl border border-border bg-bg-elevated p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-md sm:gap-5 sm:p-5"
+              >
+                {cover && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={cover}
+                    alt=""
+                    className="h-20 w-20 shrink-0 rounded-lg border border-border object-cover sm:h-28 sm:w-28"
+                  />
+                )}
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h2 className="font-medium text-text group-hover:text-accent">
+                      {blog.title}
+                    </h2>
+                    <span className="text-xs text-text-muted">
+                      {new Date(blog.createdAt).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </span>
-                  ))}
+                  </div>
+                  <p className="text-sm leading-relaxed text-text-muted">
+                    {excerptOf(blog.content)}
+                  </p>
+                  {blog.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {blog.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full border border-border bg-bg px-2.5 py-0.5 text-xs text-text-muted"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 

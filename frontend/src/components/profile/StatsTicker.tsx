@@ -45,7 +45,7 @@ export default function StatsTicker() {
             ref={(node) => {
               refs.current[i] = node;
             }}
-            className="font-serif text-3xl font-medium text-text sm:text-4xl"
+            className="font-serif text-2xl font-medium text-text sm:text-3xl"
           >
             0{stat.suffix}
           </span>

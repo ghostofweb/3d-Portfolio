@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/connectDB.js'; 
 import { BlogRouter } from './router/Blog.route.js';
 import { UserRouter } from './router/User.route.js';
+import { MascotRouter } from './router/Mascot.route.js';
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/blog", BlogRouter);
 app.use("/api/user", UserRouter);
+app.use("/api/mascot", MascotRouter);
 
 
 if (process.env.NODE_ENV !== 'production') {

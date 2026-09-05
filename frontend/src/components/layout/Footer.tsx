@@ -12,7 +12,7 @@ export default function Footer() {
             href={site.socials.github}
             target="_blank"
             rel="noreferrer"
-            className="hover:text-accent"
+            className="transition-colors hover:text-accent"
           >
             GitHub
           </a>
@@ -20,7 +20,7 @@ export default function Footer() {
             href={site.socials.linkedin}
             target="_blank"
             rel="noreferrer"
-            className="hover:text-accent"
+            className="transition-colors hover:text-accent"
           >
             LinkedIn
           </a>

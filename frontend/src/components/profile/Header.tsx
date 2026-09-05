@@ -6,13 +6,13 @@ export default function Header() {
     <header id="intro" className="flex scroll-mt-10 flex-col items-start gap-5 pt-6 md:pt-10">
       <div>
         <p className="text-sm text-text-muted">Hello, I&apos;m</p>
-        <h1 className="mt-1 font-serif text-3xl font-semibold tracking-tighter text-text sm:text-4xl">
+        <h1 className="mt-1 font-serif text-4xl font-semibold tracking-tighter text-text sm:text-5xl">
           {site.name}
         </h1>
         <p className="mt-2 text-base font-medium text-accent">{site.role}</p>
       </div>
 
-      <p className="max-w-xl text-base leading-relaxed text-text-muted">
+      <p className="max-w-xl text-base leading-relaxed text-text">
         {site.tagline} {site.bio}
       </p>
 

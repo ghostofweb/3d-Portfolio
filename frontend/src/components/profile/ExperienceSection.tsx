@@ -70,7 +70,7 @@ export default function ExperienceSection() {
                   exp.company
                 )}
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-text-muted">
+              <p className="mt-2 text-sm leading-relaxed text-text">
                 {exp.summary}
               </p>
               <ul className="mt-2 flex flex-col gap-1.5">
