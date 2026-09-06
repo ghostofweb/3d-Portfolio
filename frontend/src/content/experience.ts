@@ -18,7 +18,7 @@ export const experiences: Experience[] = [
     id: 2,
     company: "Competishun (via Newral)",
     role: "Full-Stack Owner",
-    duration: "Sept 2025 — Present",
+    duration: "Sept 2025 - Present",
     summary:
       "Own full-stack development for Competishun, a large-scale EdTech platform for JEE/NEET aspirants with 100,000+ active users, serving students concurrently across a ~9-microservice architecture.",
     points: [
@@ -61,7 +61,7 @@ export const experiences: Experience[] = [
       "Set up delivery and quality infrastructure alongside feature work.",
     points: [
       "Set up CI/CD pipelines with GitHub Actions and unit/integration test suites.",
-      "Used AI-assisted development tools — GitHub Copilot, Claude Code, Antigravity, Cursor, and custom AI agents — to speed up delivery.",
+      "Used AI-assisted development tools - GitHub Copilot, Claude Code, Antigravity, Cursor, and custom AI agents - to speed up delivery.",
     ],
   },
 ];

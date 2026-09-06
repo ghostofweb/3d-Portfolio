@@ -20,19 +20,19 @@ const display = IBM_Plex_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://sahiljeet.dev"),
   title: {
-    default: `${site.name} — ${site.role}`,
+    default: `${site.name} - ${site.role}`,
     template: `%s | ${site.name}`,
   },
   description: site.bio,
   openGraph: {
-    title: `${site.name} — ${site.role}`,
+    title: `${site.name} - ${site.role}`,
     description: site.bio,
     type: "website",
     images: ["/og-default.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — ${site.role}`,
+    title: `${site.name} - ${site.role}`,
     description: site.bio,
     images: ["/og-default.png"],
   },

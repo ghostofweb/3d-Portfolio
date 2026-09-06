@@ -77,7 +77,7 @@ export default async function BlogPage({
 
       {data && data.blogs.length === 0 && (
         <p className="mt-12 text-sm text-text-muted">
-          No posts published yet — check back soon.
+          No posts published yet - check back soon.
         </p>
       )}
 

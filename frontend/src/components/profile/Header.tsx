@@ -21,7 +21,7 @@ export default function Header() {
       <div className="flex items-center gap-2 text-sm text-text-muted">
         <span className="h-2 w-2 rounded-full bg-accent" />
         <span>
-          <span className="text-text">Currently:</span> {site.currentRoles}
+          <span className="text-text">My Work:</span> {site.currentRoles}
         </span>
       </div>
 

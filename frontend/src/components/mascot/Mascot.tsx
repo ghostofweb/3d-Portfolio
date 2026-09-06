@@ -147,7 +147,7 @@ export default function Mascot() {
         setHasPatted(true);
       }
     } catch {
-      // offline/unreachable backend — the local reaction still plays, count just won't update
+      // offline/unreachable backend - the local reaction still plays, count just won't update
     }
   };
 

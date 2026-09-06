@@ -14,7 +14,7 @@ export const ownProjects: Project[] = [
     ],
   },
   {
-    title: "ImageAI — AI-Powered Image Editing Platform",
+    title: "ImageAI - AI-Powered Image Editing Platform",
     desc: "A platform for AI-based image generation, restoration, and background removal. Next.js 14, TypeScript, Tailwind CSS, Cloudinary AI.",
     href: "https://imageai-bay.vercel.app/",
     logo: "/assets/project-logo5.png",
@@ -26,7 +26,7 @@ export const ownProjects: Project[] = [
     ],
   },
   {
-    title: "CipherSprint — Typing Speed App",
+    title: "CipherSprint - Typing Speed App",
     desc: "An interactive typing speed test with customizable themes and detailed analytics. React.js, Firebase, Material-UI.",
     href: "https://ciphersprint.vercel.app/",
     logo: "/assets/project-logo1.svg",
@@ -37,7 +37,7 @@ export const ownProjects: Project[] = [
     ],
   },
   {
-    title: "Saffron Stories — A Blog Website",
+    title: "Saffron Stories - A Blog Website",
     desc: "A blog platform for creating, reading, and managing posts, with day and night modes. React.js, Firebase, Tailwind CSS.",
     href: "https://saffron-stories.vercel.app/",
     logo: "/assets/project-logo2.png",
@@ -47,7 +47,7 @@ export const ownProjects: Project[] = [
     ],
   },
   {
-    title: "Gaberina — A Luxurious E-Commerce Website",
+    title: "Gaberina - A Luxurious E-Commerce Website",
     desc: "A full e-commerce platform with secure login, payments, and a dynamic admin panel. React.js, Node.js, MongoDB.",
     href: "https://gaberina.vercel.app/",
     logo: "/assets/project-logo3.png",
@@ -58,7 +58,7 @@ export const ownProjects: Project[] = [
     ],
   },
   {
-    title: "Divine Pellets — Biomass Energy Website",
+    title: "Divine Pellets - Biomass Energy Website",
     desc: "A marketing site for a biomass energy company with interactive sections and smooth animation. React.js, Node.js, Framer Motion.",
     href: "https://www.divinepellets.com/",
     logo: "/assets/project-logo4.png",

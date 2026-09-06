@@ -11,7 +11,7 @@ export const patDog = async (req, res) => {
         try {
             await MascotPat.create({ visitorId });
         } catch (error) {
-            // duplicate key (E11000) just means this visitor already patted once — ignore
+            // duplicate key (E11000) just means this visitor already patted once - ignore
             if (error.code !== 11000) throw error;
         }
 
