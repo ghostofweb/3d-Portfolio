@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 import { API_URL } from "@/lib/api";
 import { toHttps, secureContentImages, excerptOf } from "@/lib/blog";
 import ImageLightbox from "@/components/blog/ImageLightbox";
@@ -65,7 +65,15 @@ export default async function BlogPostPage({
   if (!blog) notFound();
 
   const cover = toHttps(blog.coverImage);
-  const safeContent = DOMPurify.sanitize(secureContentImages(blog.content));
+  const safeContent = sanitizeHtml(secureContentImages(blog.content), {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "h1", "h2", "span", "u"]),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      img: ["src", "alt", "width", "height"],
+      "*": ["style", "class"],
+    },
+    allowedSchemes: ["http", "https", "data"],
+  });
 
   return (
     <div className="mx-auto max-w-2xl px-6 pb-24 pt-16 sm:pt-20">
