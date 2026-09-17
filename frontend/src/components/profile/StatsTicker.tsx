@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
 const stats = [
-  { target: 74, suffix: "%", label: "cut in backend CPU usage" },
+  { target: 40, suffix: "%", label: "cut in cloud infra cost" },
   { target: 9, suffix: "", label: "microservices migrated to AWS" },
   { target: 100, suffix: "k+", label: "concurrent users served" },
 ];

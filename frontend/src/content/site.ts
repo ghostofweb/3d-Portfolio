@@ -1,9 +1,13 @@
 export const site = {
   name: "Sahiljeet Singh Kalsi",
-  role: "Software Engineer",
-  tagline:
-    "Software engineer working on backend systems and infrastructure for production-scale applications.",
-  bio: "Primarily working with Node.js, TypeScript, NestJS, PostgreSQL, Redis, and AWS to build scalable APIs, distributed services, and real-time systems. I work on performance optimization, database-heavy workloads, infrastructure reliability, and backend architecture improvements across multiple microservices. worked on reducing backend CPU utilization from ~99% to ~25%, rebuilding a large FFmpeg-based transcoding pipeline, and migrating services from GCP to AWS. I enjoy understanding system bottlenecks, improving performance under load, and building backend systems that remain reliable at scale.",
+  role: "Full-Stack Engineer",
+  experienceYears: "1.5+ years",
+  tagline: "I take products from 0 to 1, then make them cheap to run at scale.",
+  bio: "Full-stack engineer working across Node.js, NestJS, TypeScript, PostgreSQL, Redis, and AWS. I've cut cloud infrastructure costs by 40% through query and network optimization, and shipped multiple products end-to-end, from backend to deployment, often leaning on AI tooling to move faster.",
+  pillars: [
+    { title: "Scale & Cost", proof: "40% lower cloud cost, 32→4 core footprint" },
+    { title: "0→1 Builder", proof: "Ships full-stack + AI products end-to-end" },
+  ],
   currentRoles:
     "Senior Full-Stack Developer at Newral - Build scalable backend systems, infrastructure, and distributed services for production applications serving 100,000+ concurrent users.",
   openTo:

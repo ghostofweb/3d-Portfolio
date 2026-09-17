@@ -25,7 +25,7 @@ export const experiences: Experience[] = [
       "Reduced backend CPU usage from ~99% to ~25% through SQL query optimization, Redis caching, and workload restructuring.",
       "Redesigned the video upload and transcoding pipeline using FFmpeg, achieving over 80% faster video processing.",
       "Led the migration of 9 microservices from GCP to AWS, improving scalability, reliability, and cost efficiency.",
-      "Optimized infrastructure footprint, reducing compute usage from 32 cores to 4 cores.",
+      "Cut cloud infrastructure cost by 40% by optimizing SQL queries and consolidating cross-service network calls onto a single network path, shrinking compute footprint from 32 cores to 4.",
       "Resolved critical production issues across multiple microservices, leading to a ~90% reduction in app crashes.",
     ],
   },

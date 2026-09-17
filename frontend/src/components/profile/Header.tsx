@@ -1,5 +1,6 @@
 import { site } from "@/content/site";
 import StatsTicker from "./StatsTicker";
+import FocusPillars from "./FocusPillars";
 
 export default function Header() {
   return (
@@ -9,12 +10,17 @@ export default function Header() {
         <h1 className="mt-1 font-serif text-4xl font-semibold tracking-tighter text-text sm:text-5xl">
           {site.name}
         </h1>
-        <p className="mt-2 text-base font-medium text-accent">{site.role}</p>
+        <p className="mt-2 text-base font-medium text-accent">
+          {site.role} <span className="text-text-muted">· {site.experienceYears}</span>
+        </p>
       </div>
 
-      <p className="max-w-xl text-base leading-relaxed text-text">
-        {site.tagline} {site.bio}
-      </p>
+      <FocusPillars />
+
+      <div className="max-w-xl">
+        <p className="text-lg font-semibold leading-snug text-text">{site.tagline}</p>
+        <p className="mt-2 text-base leading-relaxed text-text-muted">{site.bio}</p>
+      </div>
 
       <StatsTicker />
 

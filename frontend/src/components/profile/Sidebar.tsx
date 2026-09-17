@@ -12,7 +12,9 @@ export default function Sidebar() {
           <p className="font-serif text-base font-semibold text-text">
             {site.name}
           </p>
-          <p className="text-sm text-accent">{site.role}</p>
+          <p className="text-sm text-accent">
+            {site.role} <span className="text-text-muted">· {site.experienceYears}</span>
+          </p>
         </div>
       </div>
 
