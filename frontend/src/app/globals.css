@@ -110,6 +110,33 @@ a {
   animation: tail-wag-happy 0.22s ease-in-out infinite;
 }
 
+@keyframes tail-wag-eager {
+  0%,
+  100% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(22deg);
+  }
+}
+
+.mascot-tail-eager {
+  animation: tail-wag-eager 0.4s ease-in-out infinite;
+}
+
+@keyframes head-curious {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-6deg);
+  }
+}
+
+.mascot-head-curious {
+  animation: head-curious 0.25s ease-out forwards;
+}
+
 @keyframes head-tilt {
   0%,
   100% {

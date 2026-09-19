@@ -3,14 +3,20 @@ export default function DogIcon({
   animated = false,
   tailAngle,
   reacting = false,
+  hovering = false,
+  beckoning = false,
 }: {
   className?: string;
   animated?: boolean;
   tailAngle?: number;
   reacting?: boolean;
+  hovering?: boolean;
+  beckoning?: boolean;
 }) {
+  const eager = hovering && !reacting;
+
   const tailStyle =
-    reacting
+    reacting || eager
       ? { transformOrigin: "48px 37px" }
       : tailAngle !== undefined
         ? {
@@ -22,9 +28,19 @@ export default function DogIcon({
 
   const tailClass = reacting
     ? "mascot-tail-happy"
-    : tailAngle === undefined && animated
-      ? "mascot-tail"
-      : undefined;
+    : eager
+      ? "mascot-tail-eager"
+      : tailAngle === undefined && animated
+        ? "mascot-tail"
+        : undefined;
+
+  const headClass = reacting
+    ? undefined
+    : eager
+      ? "mascot-head-curious"
+      : animated
+        ? "mascot-head-tilt"
+        : undefined;
 
   return (
     <svg
@@ -46,8 +62,8 @@ export default function DogIcon({
       {/* body */}
       <rect x="16" y="26" width="32" height="18" rx="9" fill="#e2963c" />
 
-      {/* head group: subtle idle tilt */}
-      <g style={{ transformOrigin: "32px 30px" }} className={animated && !reacting ? "mascot-head-tilt" : undefined}>
+      {/* head group: idle tilt, or a held curious tilt while hovered */}
+      <g style={{ transformOrigin: "32px 30px" }} className={headClass}>
         {/* ears */}
         <g style={{ transformOrigin: "17px 14px" }} className={animated ? "mascot-ear-left" : undefined}>
           <path d="M12 10 L22 22 L14 26 Z" fill="#c97a25" />
@@ -94,7 +110,7 @@ export default function DogIcon({
       <rect x="20" y="40" width="6" height="6" rx="2" fill="#c97a25" />
       <g
         style={{ transformOrigin: "41px 40px" }}
-        className={reacting ? "mascot-paw-wave" : undefined}
+        className={reacting || beckoning ? "mascot-paw-wave" : undefined}
       >
         <rect x="38" y="40" width="6" height="6" rx="2" fill="#c97a25" />
       </g>
