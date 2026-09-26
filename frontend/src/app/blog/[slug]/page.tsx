@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import sanitizeHtml from "sanitize-html";
 import { API_URL } from "@/lib/api";
 import { toHttps, secureContentImages, excerptOf } from "@/lib/blog";
-import ImageLightbox from "@/components/blog/ImageLightbox";
+import ImageLightbox from "@/components/common/ImageLightbox";
 
 interface Blog {
   _id: string;
