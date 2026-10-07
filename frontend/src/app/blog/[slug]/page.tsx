@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import sanitizeHtml from "sanitize-html";
 import { API_URL } from "@/lib/api";
+import { site } from "@/content/site";
 import { toHttps, secureContentImages, excerptOf } from "@/lib/blog";
 import ImageLightbox from "@/components/common/ImageLightbox";
 
@@ -42,14 +43,37 @@ export async function generateMetadata({
 
   const description = excerptOf(blog.content);
   const cover = toHttps(blog.coverImage);
+  const ogImageUrl = cover || "/og-default.png";
+
   return {
     title: blog.title,
     description,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
     openGraph: {
       title: blog.title,
       description,
       type: "article",
-      images: cover ? [cover] : undefined,
+      url: `/blog/${slug}`,
+      publishedTime: blog.createdAt,
+      authors: [blog.author?.name || site.name],
+      tags: blog.tags,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: blog.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: blog.title,
+      description,
+      images: [ogImageUrl],
+      creator: site.socials.twitterHandle || "@ghostofweb",
     },
   };
 }

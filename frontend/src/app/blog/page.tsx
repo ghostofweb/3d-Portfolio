@@ -4,9 +4,36 @@ import { API_URL } from "@/lib/api";
 import { site } from "@/content/site";
 import { toHttps, excerptOf } from "@/lib/blog";
 
+const blogDescription = `Writing from ${site.name} on backend systems, distributed architectures, cloud infrastructure, and building products from 0 to 1.`;
+
 export const metadata: Metadata = {
   title: "Blog",
-  description: `Writing from ${site.name} on backend systems, infrastructure, and building things.`,
+  description: blogDescription,
+  alternates: {
+    canonical: "/blog",
+  },
+  openGraph: {
+    title: `Blog | ${site.name}`,
+    description: blogDescription,
+    url: "/blog",
+    type: "website",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: `${site.name} — Technical Blog`,
+        type: "image/png",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Blog | ${site.name}`,
+    description: blogDescription,
+    images: ["/og-default.png"],
+    creator: site.socials.twitterHandle || "@ghostofweb",
+  },
 };
 
 interface BlogListItem {

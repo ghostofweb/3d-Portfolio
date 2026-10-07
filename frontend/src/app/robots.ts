@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { site } from "@/content/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/admin"],
     },
-    sitemap: "https://sahiljeet.dev/sitemap.xml",
+    sitemap: `${site.url}/sitemap.xml`,
   };
 }

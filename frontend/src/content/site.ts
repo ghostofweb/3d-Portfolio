@@ -12,11 +12,15 @@ export const site = {
     "Senior Full-Stack Developer at Newral - Build scalable backend systems, infrastructure, and distributed services for production applications serving 100,000+ concurrent users.",
   openTo:
     "Open to software engineering opportunities involving distributed systems, infrastructure, and scalable application development.",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://sahiljeet.dev",
   email: "sahiljeetsinghkalsi@gmail.com",
   resumeUrl: "/resume.pdf",
   socials: {
     github: "https://github.com/ghostofweb",
     linkedin: "https://www.linkedin.com/in/sahiljeet-singh-kalsi-085844244/",
+    twitter: "https://x.com/ghostofweb",
+    twitterHandle: "@ghostofweb",
     cal: "https://cal.com/syntaxpath",
   },
 };
+

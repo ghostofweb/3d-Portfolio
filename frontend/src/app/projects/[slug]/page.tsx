@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { site } from "@/content/site";
 import { ownProjects } from "@/content/projects";
 import ImageLightbox from "@/components/common/ImageLightbox";
 
@@ -18,14 +19,34 @@ export async function generateMetadata({
   const project = ownProjects.find((p) => p.slug === slug);
   if (!project) return { title: "Project not found" };
 
+  const coverImage = project.cover || "/og-default.png";
+
   return {
     title: project.title,
     description: project.desc,
+    alternates: {
+      canonical: `/projects/${slug}`,
+    },
     openGraph: {
-      title: project.title,
+      title: `${project.title} — Case Study | ${site.name}`,
       description: project.desc,
+      url: `/projects/${slug}`,
       type: "website",
-      images: [project.cover],
+      images: [
+        {
+          url: coverImage,
+          width: 1200,
+          height: 630,
+          alt: `${project.title} — ${site.name}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.title} | ${site.name}`,
+      description: project.desc,
+      images: [coverImage],
+      creator: site.socials.twitterHandle || "@ghostofweb",
     },
   };
 }
