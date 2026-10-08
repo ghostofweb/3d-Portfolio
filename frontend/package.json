@@ -6,9 +6,7 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "cloudflare:build": "opennextjs-cloudflare",
-    "cloudflare:preview": "npm run cloudflare:build && wrangler dev .open-next/worker.js"
+    "lint": "eslint"
   },
   "dependencies": {
     "axios": "^1.20.0",

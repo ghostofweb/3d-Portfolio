@@ -1,0 +1,16 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/admin/create-blog/page": "/admin/create-blog",
+  "/admin/dashboard/page": "/admin/dashboard",
+  "/admin/edit-blog/[slug]/page": "/admin/edit-blog/[slug]",
+  "/admin/login/page": "/admin/login",
+  "/blog/[slug]/page": "/blog/[slug]",
+  "/blog/page": "/blog",
+  "/favicon.ico/route": "/favicon.ico",
+  "/manifest.webmanifest/route": "/manifest.webmanifest",
+  "/page": "/",
+  "/projects/[slug]/page": "/projects/[slug]",
+  "/robots.txt/route": "/robots.txt",
+  "/sitemap.xml/route": "/sitemap.xml"
+}
